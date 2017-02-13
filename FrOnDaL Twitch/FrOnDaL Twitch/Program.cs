@@ -25,53 +25,20 @@ namespace FrOnDaL_Twitch
         private static Menu _main, _combo, _laneclear, _jungleclear, _drawings, _misc;
         private static void Main(){Loading.OnLoadingComplete += OnLoadingComplete;}
         private static bool Passive(this Obj_AI_Base obj) { return obj.HasBuff("TwitchDeadlyVenom"); }
-
-        private static int StacksPassive(Obj_AI_Base obj)
+        public static int StacksPassive(Obj_AI_Base obj)
         {
             var stacks = 0;
             if (obj.IsInRange(Twitch, _e.Range))
             {
-                var passiveHit = ObjectManager.Get<Obj_GeneralParticleEmitter>().FirstOrDefault(e => e.Name.Contains("twitch_poison_counter"));
-                if (passiveHit == null) stacks = 0;
-                if (passiveHit == null) return stacks;
-                if (passiveHit.Name != "twitch_poison_counter_01.troy")
+                var passiveHit = ObjectManager.Get<Obj_GeneralParticleEmitter>().FirstOrDefault(x => x.Name.Contains("twitch_poison_counter"));
+                switch (passiveHit?.Name)
                 {
-                    if (passiveHit.Name != "twitch_poison_counter_02.troy")
-                    {
-                        if (passiveHit.Name != "twitch_poison_counter_03.troy")
-                        {
-                            if (passiveHit.Name != "twitch_poison_counter_04.troy")
-                            {
-                                if (passiveHit.Name != "twitch_poison_counter_05.troy")
-                                {
-                                    if (passiveHit.Name == "twitch_poison_counter_06.troy")
-                                    {
-                                        stacks = 6;
-                                    }
-                                }
-                                else
-                                {
-                                    stacks = 5;
-                                }
-                            }
-                            else
-                            {
-                                stacks = 4;
-                            }
-                        }
-                        else
-                        {
-                            stacks = 3;
-                        }
-                    }
-                    else
-                    {
-                        stacks = 2;
-                    }
-                }
-                else
-                {
-                    stacks = 1;
+                    case "twitch_poison_counter_01.troy":stacks = 1;break;
+                    case "twitch_poison_counter_02.troy":stacks = 2;break;
+                    case "twitch_poison_counter_03.troy":stacks = 3;break;
+                    case "twitch_poison_counter_04.troy":stacks = 4;break;
+                    case "twitch_poison_counter_05.troy":stacks = 5;break;
+                    case "twitch_poison_counter_06.troy":stacks = 6;break;
                 }
             }
             else
@@ -95,37 +62,16 @@ namespace FrOnDaL_Twitch
         private static void HasarGostergesi(EventArgs args)
         {
             foreach (var toHeroes in EntityManager.Heroes.Enemies.Where(x => x.VisibleOnScreen && x.Passive()))
-            {
-                if (toHeroes.Hero != Champion.Annie)
+            {            
+                switch (toHeroes.Hero)
                 {
-                    if (toHeroes.Hero != Champion.Jhin)
-                    {
-                        if (toHeroes.Hero == Champion.Darius)
-                        {
-                            _dikey = 9.8f;
-                            _yatay = -2;
-                        }
-                        else
-                        {
-                            _dikey = 9.8f;
-                            _yatay = 2;
-                        }
-                    }
-                    else
-                    {
-                        _dikey = -4.8f;
-                        _yatay = -9;
-                    }
-                }
-                else
-                {
-                    _dikey = -1.8f;
-                    _yatay = -9;
+                    case Champion.Annie:_dikey = -1.8f;_yatay = -9;break;
+                    case Champion.Jhin:_dikey = -4.8f;_yatay = -9;break;
+                    case Champion.Darius:_dikey = 9.8f;_yatay = -2;break;
+                    default:_dikey = 9.8f;_yatay = 2;break;
                 }
                 var toHeroesD = ESpellDamage(toHeroes);
-
                 if (toHeroesD < 1) return;
-
                 if (!_drawings["EKillStealD"].Cast<CheckBox>().CurrentValue) continue;
                 var hasarX = (toHeroes.TotalShieldHealth() - toHeroesD > 0 ? toHeroes.TotalShieldHealth() - toHeroesD : 0) / toHeroes.TotalShieldMaxHealth();
                 var hasarY = toHeroes.TotalShieldHealth() / toHeroes.TotalShieldMaxHealth();
@@ -212,24 +158,12 @@ namespace FrOnDaL_Twitch
         }
         private static void TwitchActive(EventArgs args)
         {
-            if (Orbwalker.ActiveModesFlags.Equals(Orbwalker.ActiveModes.Combo))
-            {
-                if (_combo["w"].Cast<CheckBox>().CurrentValue)
-                {
-                    var hedef = TargetSelector.GetTarget(_w.Range, DamageType.True);
-                    if (hedef != null && !hedef.IsInvulnerable)
-                    {
-                        var tahmin = _w.GetPrediction(hedef);
-                        if (tahmin != null && tahmin.HitChance > HitChance.Medium)
-                        {
-                            if (_w.IsReady())
-                            {
-                                _w.Cast(hedef);
-                            }
-                        }
-                    }
-                }
-             }          
+            var hedef = TargetSelector.GetTarget(_w.Range, DamageType.True);
+            var tahmin = _w.GetPrediction(hedef);
+            if (Orbwalker.ActiveModesFlags.Equals(Orbwalker.ActiveModes.Combo) && _combo["w"].Cast<CheckBox>().CurrentValue && hedef != null && !hedef.IsInvulnerable && tahmin != null && tahmin.HitChance > HitChance.Medium && _w.IsReady())
+            {               
+                _w.Cast(hedef);
+            }          
             if (Orbwalker.ActiveModesFlags.HasFlag(Orbwalker.ActiveModes.LaneClear))
             {
                 if (Twitch.ManaPercent >= _laneclear["LmanaP"].Cast<Slider>().CurrentValue)
@@ -254,26 +188,22 @@ namespace FrOnDaL_Twitch
         {
             if (_laneclear["w"].Cast<CheckBox>().CurrentValue)
             {
-                var farm = EntityManager.MinionsAndMonsters.GetLaneMinions(EntityManager.UnitTeam.Enemy, Twitch.ServerPosition).Where(x => x.IsInRange(Twitch, _w.Range));
-                if (true)
-                {
-                    var keyhit = _w.GetBestCircularCastPosition(farm);
-                    if (keyhit.HitNumber >= _laneclear["UnitsWhit"].Cast<Slider>().CurrentValue && _e.IsReady())
+                var farm = EntityManager.MinionsAndMonsters.GetLaneMinions(EntityManager.UnitTeam.Enemy, Twitch.ServerPosition).Where(x => x.IsInRange(Twitch, _w.Range));              
+                var keyhit = _w.GetBestCircularCastPosition(farm);
+                if (keyhit.HitNumber >= _laneclear["UnitsWhit"].Cast<Slider>().CurrentValue && _e.IsReady())
                     { _w.Cast(keyhit.CastPosition);}
-                }
+                
             }
 
             if (!_laneclear["e"].Cast<CheckBox>().CurrentValue) return;
             {
                 var farm = EntityManager.MinionsAndMonsters.GetLaneMinions(EntityManager.UnitTeam.Enemy, Twitch.ServerPosition).Where(x => x.IsInRange(Twitch, _e.Range) && x.Passive());
-                if (true)
-                {
-                    var objAiMinions = farm as Obj_AI_Minion[] ?? farm.ToArray();
-                    if (objAiMinions.Count(c => Prediction.Health.GetPrediction(c, 275) < ESpellDamage(c) && StacksPassive(c) >= _laneclear["MinionsEstacks"].Cast<Slider>().CurrentValue) >= _laneclear["MinionsEhit"].Cast<Slider>().CurrentValue)
-                    {if (_e.IsReady()) _e.Cast();}
-                    if (objAiMinions.Count(c => StacksPassive(c) >= _laneclear["MinionsEstacks"].Cast<Slider>().CurrentValue) < _laneclear["MinionsEhit"].Cast<Slider>().CurrentValue) return;
-                    if (_e.IsReady()) _e.Cast();
-                }
+                var objAiMinions = farm as Obj_AI_Minion[] ?? farm.ToArray();
+                if (objAiMinions.Count(c =>Prediction.Health.GetPrediction(c, 275) < ESpellDamage(c) && StacksPassive(c) >= _laneclear["MinionsEstacks"].Cast<Slider>().CurrentValue) >= _laneclear["MinionsEhit"].Cast<Slider>().CurrentValue && _e.IsReady())
+                {_e.Cast();}
+                if (objAiMinions.Count(c => StacksPassive(c) >= _laneclear["MinionsEstacks"].Cast<Slider>().CurrentValue) < _laneclear["MinionsEhit"].Cast<Slider>().CurrentValue && _e.IsReady()) return;
+                {_e.Cast();}
+                
             }
         }
         private static void JunClear()
