@@ -68,6 +68,7 @@ namespace FrOnDaL_Twitch
                     case Champion.Annie:_dikey = -1.8f;_yatay = -9;break;
                     case Champion.Jhin:_dikey = -4.8f;_yatay = -9;break;
                     case Champion.Darius:_dikey = 9.8f;_yatay = -2;break;
+                    case Champion.XinZhao:_dikey = 10.8f; _yatay = 2; break;
                     default:_dikey = 9.8f;_yatay = 2;break;
                 }
                 var toHeroesD = ESpellDamage(toHeroes);
