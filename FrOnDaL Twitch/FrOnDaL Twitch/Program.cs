@@ -13,37 +13,243 @@ namespace FrOnDaL_Twitch
 {
     internal static class Program
     {
-        private static AIHeroClient Twitch => Player.Instance;
-        private static readonly string[] StealMonster = { "SRU_Red", "SRU_Blue", "SRU_Baron", "SRU_RiftHerald", "SRU_Dragon_Fire", "SRU_Dragon_Water", "SRU_Dragon_Earth", "SRU_Dragon_Air", "SRU_Dragon_Elder" };
+        private static AIHeroClient Twitch => Player.Instance;      
         private static Spellbook _lvl;
-      //private static Item _ghostBlade;
+        private static readonly Item AutoGhostBlade = new Item(ItemId.Youmuus_Ghostblade);
+        private static readonly Item AutoBotrk = new Item(ItemId.Blade_of_the_Ruined_King);
+        private static readonly Item AutoCutlass = new Item(ItemId.Bilgewater_Cutlass);
         private static Spell.Active _q, _e/*, _r*/;
         private static Spell.Skillshot _w;
+        private static Spell.Targeted Smite;
+        private static float _dikeyj, _yatayj, genislikj, yukseklikj;
         private static float _dikey, _yatay;
         private static float genislik = 104;
         private static float yukseklik = 9.82f;
         private static Menu _main, _combo, _laneclear, _jungleclear, _drawings, _misc;
-        private static void Main(){Loading.OnLoadingComplete += OnLoadingComplete;}
         private static bool Passive(this Obj_AI_Base obj) { return obj.HasBuff("TwitchDeadlyVenom"); }
-        public static int StacksPassive(Obj_AI_Base obj)
+        private static void AutoItem(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
         {
-            var stacks = 0;
-            if (obj.IsInRange(Twitch, _e.Range))
+            if (_misc["ghostBladeR"].Cast<CheckBox>().CurrentValue && sender.IsMe && AutoGhostBlade.IsOwned() && args.Slot == SpellSlot.R && AutoGhostBlade.IsReady())
             {
-                var passiveHit = ObjectManager.Get<Obj_GeneralParticleEmitter>().FirstOrDefault(x => x.Name.Contains("twitch_poison_counter"));
-                switch (passiveHit?.Name)
-                {
-                    case "twitch_poison_counter_01.troy":stacks = 1;break;
-                    case "twitch_poison_counter_02.troy":stacks = 2;break;
-                    case "twitch_poison_counter_03.troy":stacks = 3;break;
-                    case "twitch_poison_counter_04.troy":stacks = 4;break;
-                    case "twitch_poison_counter_05.troy":stacks = 5;break;
-                    case "twitch_poison_counter_06.troy":stacks = 6;break;
-                }
+                AutoGhostBlade.Cast();
             }
-            else
+            var botrkHedef = TargetSelector.GetTarget(EntityManager.Heroes.Enemies.Where(x => x != null && x.IsValidTarget() && x.IsInRange(Twitch, 550)), DamageType.Physical);
+            if (botrkHedef != null && _misc["botrk"].Cast<CheckBox>().CurrentValue && AutoBotrk.IsOwned() && AutoBotrk.IsReady() && Orbwalker.ActiveModesFlags.Equals(Orbwalker.ActiveModes.Combo))
+            {                
+                AutoBotrk.Cast(botrkHedef);
+            }
+            if (botrkHedef != null && _misc["autoCutlass"].Cast<CheckBox>().CurrentValue && AutoCutlass.IsOwned() && AutoCutlass.IsReady() && Orbwalker.ActiveModesFlags.Equals(Orbwalker.ActiveModes.Combo))
             {
-                stacks = 0;
+                AutoCutlass.Cast(botrkHedef);
+            }
+        }
+        private static void AutoGhostBladeQ(Obj_AI_Base sender, Obj_AI_BaseBuffGainEventArgs args)
+        {
+            if (!sender.IsMe || args.Buff.Name != "twitchhideinshadowsbuff" || !(Twitch.CountEnemyHeroesInRangeWithPrediction(950, 350) >= 1)) return;
+            if (_misc["ghostBladeQ"].Cast<CheckBox>().CurrentValue && AutoGhostBlade.IsOwned() && AutoGhostBlade.IsReady())
+            {
+                AutoGhostBlade.Cast();
+            }
+        }
+        private static void Main(){Loading.OnLoadingComplete += OnLoadingComplete;}            
+        private static void OnLoadingComplete(EventArgs args) {
+            if (Twitch.Hero != Champion.Twitch) return;
+            Game.OnTick += TwitchActive;
+            Game.OnUpdate += AutoSmite;
+            Drawing.OnEndScene += HasarGostergesi;
+            Drawing.OnEndScene += HasarGostergesiJungle;
+            _lvl = Twitch.Spellbook;                
+            Obj_AI_Base.OnLevelUp += OnLevelUpR;
+            Obj_AI_Base.OnBuffGain += AutoGhostBladeQ;         
+            Drawing.OnDraw += SpellDraw;
+            Chat.Print("<font color='#00FFCC'><b>[FrOnDaL]</b></font> Twitch Successfully loaded.");            
+            Spellbook.OnCastSpell += auto_baseQ;
+            Obj_AI_Base.OnProcessSpellCast += AutoItem;
+            _q = new Spell.Active(SpellSlot.Q);
+            _w = new Spell.Skillshot(SpellSlot.W, 950, SkillShotType.Circular, 250, 1400, 280) { AllowedCollisionCount = -1, MinimumHitChance = HitChance.Medium };
+            _e = new Spell.Active(SpellSlot.E, 1200);
+            //_r = new Spell.Active(SpellSlot.R);
+            Smite = new Spell.Targeted(Twitch.Spellbook.Spells.FirstOrDefault(s => s.SData.Name.ToLower().Contains("smite")).Slot, 570);
+            _main = MainMenu.AddMenu("FrOnDaL Twitch", "index");
+            _main.AddGroupLabel("Welcome FrOnDaL Twitch");
+            _main.AddSeparator(5);
+            _main.AddLabel("For faults please visit the 'elobuddy' forum and let me know.");
+            _main.AddSeparator(5);
+            _main.AddLabel("My good deeds -> FrOnDaL");
+            _combo = _main.AddSubMenu("Combo");
+            _combo.AddGroupLabel("Combo mode settings for Twitch");
+            _combo.AddLabel("Use Combo W (On/Off)" + "                                 " + "Auto E Kill Steal");
+            _combo.Add("w", new CheckBox("Use W"));
+            _combo.Add("autoE", new CheckBox("Auto E"));
+            _laneclear = _main.AddSubMenu("Laneclear");
+            _laneclear.AddGroupLabel("LaneClear mode settings for Twitch");
+            _laneclear.Add("LmanaP", new Slider("LaneClear Mana Control Min mana percentage ({0}%) to use W and E", 50, 1));
+            _laneclear.AddSeparator(5);
+            _laneclear.Add("w", new CheckBox("Venom Cask (W) settings", false));
+            _laneclear.Add("UnitsWhit", new Slider("Hit {0} Units Enemy and Minions", 4, 1, 8));
+            _laneclear.AddSeparator(5);
+            _laneclear.Add("e", new CheckBox("Use E", false));
+            _laneclear.Add("MinionsEhit", new Slider("Min minions hit {0} to use E", 3, 1, 8));
+            _laneclear.Add("MinionsEstacks", new Slider("{0} stacks aa", 3, 1, 4));
+            _jungleclear = _main.AddSubMenu("Jungleclear");
+            _jungleclear.AddGroupLabel("JungleClear mode settings for Twitch");         
+            _jungleclear.Add("JmanaP", new Slider("Jungle Clear Mana Control Min mana percentage ({0}%) to use W and E", 30, 1));
+            _jungleclear.AddLabel("Venom Cask (W) settings :"+"                               "+ "Contaminate (E) settings :");
+            _jungleclear.Add("w", new CheckBox("Use W"));
+            _jungleclear.Add("e", new CheckBox("Use E")); 
+            _drawings = _main.AddSubMenu("Drawings");
+            _drawings.AddLabel("Use Drawings W-E-R (On/Off)");
+            _drawings.Add("w", new CheckBox("Draw W and R", false));
+            _drawings.Add("e", new CheckBox("Draw E", false));
+            _drawings.AddSeparator(5);
+            _drawings.AddLabel("Smite Draw (On/Off)");
+            _drawings.Add("smite", new CheckBox("Smite Draw", false));
+            _drawings.AddSeparator(5);
+            _drawings.AddLabel("Use Draw E Damage (On/Off)"+ "                           " + "Monsters Smite Damage (On/Off)");
+            _drawings.Add("EKillStealD", new CheckBox("Damage Indicator [E Damage]"));
+            _drawings.Add("smiteDamage", new CheckBox("Damage Indicator [Smite Damage]", false));
+            _misc = _main.AddSubMenu("Misc");
+            _misc.AddLabel("Auto base use Q (On/Off)");        
+            _misc.Add("autob", new CheckBox("Auto Base Q (On/Off)"));
+            _misc.AddSeparator(5);
+            _misc.AddLabel("Auto Youmuu Ghost Blade");
+            _misc.Add("ghostBladeR", new CheckBox("Youmuu Ghost Blade --> Use R"));
+            _misc.Add("ghostBladeQ", new CheckBox("Youmuu Ghost Blade --> Use Q ends"));
+            _misc.AddSeparator(5);
+            _misc.AddLabel("Auto Blade of the Ruined King and Bilgewater Cutlass");
+            _misc.Add("botrk", new CheckBox("Use BotRk (On/Off)"));
+            _misc.Add("autoCutlass", new CheckBox("Use Bilgewater Cutlass (On/Off)"));
+            _misc.Add("botrkEstacks", new Slider("Use Botrk {0} stacks Passive", 2, 1, 6));
+            _misc.AddSeparator(5);
+            _misc.AddLabel("Auto Smite Settings");
+            _misc.Add("autosmite", new KeyBind("Use Auto Smite (On/Off)", false, KeyBind.BindTypes.PressToggle, 'M'));
+        }
+        public static void OnLevelUpR(Obj_AI_Base sender, Obj_AI_BaseLevelUpEventArgs args)
+        {if (Twitch.Level > 4){_lvl.LevelSpell(SpellSlot.R);}}
+        private static void auto_baseQ(Spellbook sender, SpellbookCastSpellEventArgs eventArgs)
+        {
+            if (eventArgs.Slot != SpellSlot.Recall || !_q.IsReady() || !_misc["autob"].Cast<CheckBox>().CurrentValue) return;
+            _q.Cast();
+            Core.DelayAction(() => ObjectManager.Player.Spellbook.CastSpell(SpellSlot.Recall), _q.CastDelay + 300);
+            eventArgs.Process = false;       
+        }      
+        private static void TwitchActive(EventArgs args)
+        {         
+            if (Orbwalker.ActiveModesFlags.Equals(Orbwalker.ActiveModes.Combo))
+            {
+                var hedef = TargetSelector.GetTarget(_w.Range, DamageType.True);
+                var tahmin = _w.GetPrediction(hedef);
+                if ( _combo["w"].Cast<CheckBox>().CurrentValue && hedef != null && !hedef.IsInvulnerable && tahmin != null && tahmin.HitChance > HitChance.Medium && _w.IsReady())
+                {
+                    _w.Cast(hedef);
+                }               
+            }       
+            if (Orbwalker.ActiveModesFlags.HasFlag(Orbwalker.ActiveModes.LaneClear))
+            {
+                if (Twitch.ManaPercent >= _laneclear["LmanaP"].Cast<Slider>().CurrentValue)
+                    {LanClear(); }              
+            }
+            if (Orbwalker.ActiveModesFlags.HasFlag(Orbwalker.ActiveModes.JungleClear))
+            {                
+                if (Twitch.ManaPercent >= _jungleclear["JmanaP"].Cast<Slider>().CurrentValue)
+                    {JunClear(); }            
+            }
+            if (!_combo["autoE"].Cast<CheckBox>().CurrentValue) return;
+            var rival = EntityManager.Heroes.Enemies.Where(x => x.IsValid && !x.IsDead && !x.IsInvulnerable && x.Passive() && Prediction.Health.GetPrediction(x, 275) < ESpellDamage(x)).FirstOrDefault(d => d.IsInRange(Twitch, _e.Range));
+            if (rival != null && _e.IsReady())
+            { _e.Cast();}
+        }
+        private static void SpellDraw(EventArgs args)
+        {
+            if (_drawings["w"].Cast<CheckBox>().CurrentValue){ _w.DrawRange(Color.FromArgb(130, Color.Green));}
+            if (_drawings["e"].Cast<CheckBox>().CurrentValue){ _e.DrawRange(Color.FromArgb(130, Color.Green));}
+            if (_drawings["smite"].Cast<CheckBox>().CurrentValue)
+            {
+                if (_misc["autosmite"].Cast<KeyBind>().CurrentValue)
+                {
+                    Smite.DrawRange(Color.FromArgb(130, Color.White));
+                }
+                else
+                {
+                    Smite.DrawRange(Color.FromArgb(130, Color.Gray));
+                }
+                
+            }
+        }
+        private static void LanClear()
+        {
+            if (_laneclear["w"].Cast<CheckBox>().CurrentValue)
+            {
+                var farm = EntityManager.MinionsAndMonsters.GetLaneMinions(EntityManager.UnitTeam.Enemy, Twitch.ServerPosition).Where(x => x.IsInRange(Twitch, _w.Range));              
+                var keyhit = _w.GetBestCircularCastPosition(farm);
+                if (keyhit.HitNumber >= _laneclear["UnitsWhit"].Cast<Slider>().CurrentValue && _e.IsReady())
+                    { _w.Cast(keyhit.CastPosition);}              
+            }
+            if (!_laneclear["e"].Cast<CheckBox>().CurrentValue) return;
+            {
+                var farm = EntityManager.MinionsAndMonsters.GetLaneMinions(EntityManager.UnitTeam.Enemy, Twitch.ServerPosition).Where(x => x.IsInRange(Twitch, _e.Range) && x.Passive());
+                var objAiMinions = farm as Obj_AI_Minion[] ?? farm.ToArray();
+                if (objAiMinions.Count(c =>Prediction.Health.GetPrediction(c, 275) < ESpellDamage(c) && StacksPassive(c) >= _laneclear["MinionsEstacks"].Cast<Slider>().CurrentValue) >= _laneclear["MinionsEhit"].Cast<Slider>().CurrentValue && _e.IsReady())
+                {_e.Cast();}
+                if (objAiMinions.Count(c => StacksPassive(c) >= _laneclear["MinionsEstacks"].Cast<Slider>().CurrentValue) < _laneclear["MinionsEhit"].Cast<Slider>().CurrentValue && _e.IsReady()) return;
+                {_e.Cast();}                
+            }
+        }
+        private static void JunClear()
+        {
+            if (_jungleclear["w"].Cast<CheckBox>().CurrentValue)
+            {
+                var farmjung = EntityManager.MinionsAndMonsters.GetJungleMonsters(Twitch.ServerPosition).FirstOrDefault(x => x.IsInRange(Twitch, 550));
+                if (farmjung != null && _w.IsReady())
+                { _w.Cast(farmjung.ServerPosition); }
+            }
+        }
+        static void AutoSmite(EventArgs args)
+        {           
+            if (!Twitch.IsDead && _misc["autosmite"].Cast<KeyBind>().CurrentValue)
+            { 
+            var smite_champion = TargetSelector.GetTarget(Smite.Range, DamageType.Physical);
+            var smite_monster = EntityManager.MinionsAndMonsters.Monsters.Where(x => Twitch.Distance(x) < 1000 && !x.BaseSkinName.ToLower().Contains("mini")).LastOrDefault();
+            if (Smite.IsReady())
+            {
+                if (Orbwalker.ActiveModesFlags.Equals(Orbwalker.ActiveModes.Combo) && smite_champion != null && Smite.IsInRange(smite_champion))
+                {
+                    Smite.Cast(smite_champion);
+                }
+                if (smite_monster != null &&
+                    Smite.IsInRange(smite_monster) && smite_monster.Health <= Twitch.GetSummonerSpellDamage(smite_champion, DamageLibrary.SummonerSpells.Smite))
+                {
+                    Smite.Cast(smite_monster);
+                }        
+            }
+            }
+            if (!_jungleclear["e"].Cast<CheckBox>().CurrentValue) return;
+            {
+                var farmjung = EntityManager.MinionsAndMonsters.Monsters.Where(x => x.IsInRange(Twitch, _e.Range) && x.Passive() &&
+                !x.BaseSkinName.ToLower().Contains("mini")).LastOrDefault();
+                if (farmjung == null || !_e.IsReady()) return;
+                if (farmjung.Health <= ESpellDamage(farmjung))
+                {_e.Cast();}
+            }
+        }
+        public static int StacksPassive(Obj_AI_Base obj)
+        {        
+            if (obj.IsDead || !obj.IsEnemy || ((obj.Type != GameObjectType.AIHeroClient) && (obj.Type != GameObjectType.obj_AI_Minion)))
+            {
+                return 0;
+            }
+            var passiveHit = (from x in ObjectManager.Get<Obj_GeneralParticleEmitter>() where x.Name.Contains("twitch_poison_counter") && (x.Position.Distance(obj.ServerPosition) <= (obj.Type == GameObjectType.obj_AI_Minion ? 65 : 176.7768f)) orderby x.Distance(obj) select x.Name).FirstOrDefault();
+            if (passiveHit == null) return 0;
+            int stacks;
+            switch (passiveHit)
+            {
+                case "twitch_poison_counter_01.troy": stacks = 1; break;
+                case "twitch_poison_counter_02.troy": stacks = 2; break;
+                case "twitch_poison_counter_03.troy": stacks = 3; break;
+                case "twitch_poison_counter_04.troy": stacks = 4; break;
+                case "twitch_poison_counter_05.troy": stacks = 5; break;
+                case "twitch_poison_counter_06.troy": stacks = 6; break;
+                default: stacks = 0; break;
             }
             return stacks;
         }
@@ -61,181 +267,49 @@ namespace FrOnDaL_Twitch
         }
         private static void HasarGostergesi(EventArgs args)
         {
-            foreach (var toHeroes in EntityManager.Heroes.Enemies.Where(x => x.VisibleOnScreen && x.Passive()))
-            {            
-                switch (toHeroes.Hero)
+            foreach (var enemy in EntityManager.Heroes.Enemies.Where(x => !x.IsDead && x.IsHPBarRendered && x.VisibleOnScreen && x.Passive()))
+            {
+                switch (enemy.Hero)
                 {
-                    case Champion.Annie:_dikey = -1.8f;_yatay = -9;break;
-                    case Champion.Jhin:_dikey = -4.8f;_yatay = -9;break;
-                    case Champion.Darius:_dikey = 9.8f;_yatay = -2;break;
-                    case Champion.XinZhao:_dikey = 10.8f; _yatay = 2; break;
-                    default:_dikey = 9.8f;_yatay = 2;break;
+                    case Champion.Annie: _dikey = -1.8f; _yatay = -9; break;
+                    case Champion.Jhin: _dikey = -4.8f; _yatay = -9; break;
+                    case Champion.Darius: _dikey = 9.8f; _yatay = -2; break;
+                    case Champion.XinZhao: _dikey = 10.8f; _yatay = 2; break;
+                    default: _dikey = 9.8f; _yatay = 2; break;
                 }
-                var toHeroesD = ESpellDamage(toHeroes);
-                if (toHeroesD < 1) return;
-                if (!_drawings["EKillStealD"].Cast<CheckBox>().CurrentValue) continue;
-                var hasarX = (toHeroes.TotalShieldHealth() - toHeroesD > 0 ? toHeroes.TotalShieldHealth() - toHeroesD : 0) / toHeroes.TotalShieldMaxHealth();
-                var hasarY = toHeroes.TotalShieldHealth() / toHeroes.TotalShieldMaxHealth();
-                var go = new Vector2((int)(toHeroes.HPBarPosition.X + _yatay + hasarX * genislik), (int)toHeroes.HPBarPosition.Y + _dikey);
-                var finish = new Vector2((int)(toHeroes.HPBarPosition.X + _yatay + hasarY * genislik) + 1, (int)toHeroes.HPBarPosition.Y + _dikey);
+                var damage = ESpellDamage(enemy);
+                if (damage < 1) return;
+                if (!_drawings["EKillStealD"].Cast<CheckBox>().CurrentValue) continue;              
+                var hasarX = (enemy.TotalShieldHealth() - damage > 0 ? enemy.TotalShieldHealth() - damage : 0) / (enemy.MaxHealth + enemy.AllShield + enemy.AttackShield + enemy.MagicShield);
+                var hasarY = enemy.TotalShieldHealth() / (enemy.MaxHealth + enemy.AllShield + enemy.AttackShield + enemy.MagicShield);
+                var go = new Vector2((int)(enemy.HPBarPosition.X + _yatay + hasarX * genislik), (int)enemy.HPBarPosition.Y + _dikey);
+                var finish = new Vector2((int)(enemy.HPBarPosition.X + _yatay + hasarY * genislik) + 1, (int)enemy.HPBarPosition.Y + _dikey);
                 Drawing.DrawLine(go, finish, yukseklik, Color.FromArgb(180, Color.Green));
             }
         }
-
-        private static void OnLoadingComplete(EventArgs args) {
-            if (Player.Instance.Hero != Champion.Twitch) return;
-            Drawing.OnEndScene += HasarGostergesi;
-            _lvl = Twitch.Spellbook;
-          //_ghostBlade = new Item(ItemId.Youmuus_Ghostblade);          
-            Obj_AI_Base.OnLevelUp += OnLevelUpR;       
-            Game.OnTick += TwitchActive;
-            Drawing.OnDraw += SpellDraw;
-            Chat.Print("<font color='#00FFCC'><b>[FrOnDaL]</b></font> Twitch Successfully loaded.");            
-            Spellbook.OnCastSpell += auto_ghostBlade_baseQ;
-            _q = new Spell.Active(SpellSlot.Q);
-            _w = new Spell.Skillshot(SpellSlot.W, 950, SkillShotType.Circular, 250, 1400, 280) { AllowedCollisionCount = -1, MinimumHitChance = HitChance.Medium };
-            _e = new Spell.Active(SpellSlot.E, 1200);
-          //_r = new Spell.Active(SpellSlot.R);
-            _main = MainMenu.AddMenu("FrOnDaL Twitch", "index");
-            _main.AddGroupLabel("Welcome FrOnDaL Twitch");
-            _main.AddSeparator(5);
-            _main.AddLabel("For faults please visit the 'elobuddy' forum and let me know.");
-            _main.AddSeparator(10);
-            _main.AddLabel("My good deeds -> FrOnDaL");
-            _combo = _main.AddSubMenu("Combo");
-            _combo.AddGroupLabel("Combo mode settings for Twitch");
-            _combo.AddLabel("Use Combo W (On/Off)" + "                                 " + "Auto E Kill Steal");
-            _combo.Add("w", new CheckBox("Use W"));
-            _combo.Add("autoE", new CheckBox("Auto E"));
-            _laneclear = _main.AddSubMenu("Laneclear");
-            _laneclear.AddGroupLabel("LaneClear mode settings for Twitch");
-            _laneclear.Add("LmanaP", new Slider("LaneClear Mana Control Min mana percentage ({0}%) to use W and E", 50, 1));
-            _laneclear.AddSeparator(14);
-            _laneclear.Add("w", new CheckBox("Venom Cask (W) settings", false));
-            _laneclear.Add("UnitsWhit", new Slider("Hit {0} Units Enemy and Minions", 4, 1, 8));
-            _laneclear.AddSeparator(14);
-            _laneclear.Add("e", new CheckBox("Use E", false));
-            _laneclear.Add("MinionsEhit", new Slider("Min minions hit {0} to use E", 3, 1, 8));
-            _laneclear.Add("MinionsEstacks", new Slider("{0} stacks aa", 3, 1, 4));
-            _jungleclear = _main.AddSubMenu("Jungleclear");
-            _jungleclear.AddGroupLabel("JungleClear mode settings for Twitch");         
-            _jungleclear.Add("JmanaP", new Slider("Jungle Clear Mana Control Min mana percentage ({0}%) to use W and E", 30, 1));
-            _jungleclear.AddLabel("Venom Cask (W) settings :"+"                               "+ "Contaminate (E) settings :");
-            _jungleclear.Add("w", new CheckBox("Use W"));
-            _jungleclear.Add("e", new CheckBox("Use E"));
-            _jungleclear.AddSeparator(8);
-            _jungleclear.AddLabel("Uses E only on big monsters and buffs");
-            _jungleclear.Add("StealRB", new CheckBox("Steal Red & Blue"));
-            _jungleclear.Add("StealBD", new CheckBox("Steal Baron & Dragons"));
-            _drawings = _main.AddSubMenu("Drawings");
-            _drawings.AddLabel("Use Drawings W-E-R (On/Off)");
-            _drawings.Add("w", new CheckBox("Draw W and R", false));
-            _drawings.Add("e", new CheckBox("Draw E", false));
-            _drawings.AddSeparator(8);
-            _drawings.AddLabel("Use Draw E Damage (On/Off)");
-            _drawings.Add("EKillStealD", new CheckBox("Draw Damage Indicator [E Damage]"));
-            _misc = _main.AddSubMenu("Misc");
-            _misc.AddLabel("Auto base use Q (On/Off)");        
-            _misc.Add("autob", new CheckBox("Auto Base Q (On/Off)"));
-           /* _misc.AddSeparator(8);
-            _misc.AddLabel("Auto Youmuu Ghost Blade and Blade of the Ruined King");
-            _misc.Add("auto.ghostBlade.botrk", new CheckBox("Use Youmuu and Botrk (On/Off)"));*/
-        }
-        public static void OnLevelUpR(Obj_AI_Base sender, Obj_AI_BaseLevelUpEventArgs args)
-        {if (Twitch.Level > 4){_lvl.LevelSpell(SpellSlot.R);}}
-        private static void auto_ghostBlade_baseQ(Spellbook sender, SpellbookCastSpellEventArgs eventArgs)
+        private static void HasarGostergesiJungle(EventArgs args)
         {
-            if (eventArgs.Slot != SpellSlot.Recall || !_q.IsReady() || !_misc["autob"].Cast<CheckBox>().CurrentValue)
-                return;
-            _q.Cast();
-            Core.DelayAction(() => ObjectManager.Player.Spellbook.CastSpell(SpellSlot.Recall), _q.CastDelay + 300);
-            eventArgs.Process = false;
-            /*if (eventArgs.Slot != SpellSlot.R || _misc["auto.ghostBlade.botrk"].Cast<CheckBox>().CurrentValue != true)
-                return;
-            if (_r.IsReady() && _ghostBlade.IsOwned() && _ghostBlade.IsReady())
+            foreach (var monstersDamage in EntityManager.MinionsAndMonsters.Monsters.Where(x => Twitch.Distance(x) < 1000 && !x.BaseSkinName.ToLower().Contains("mini") && !x.IsDead && x.IsHPBarRendered && x.VisibleOnScreen))
             {
-                _ghostBlade.Cast();
-            }*/
-        }
-        private static void TwitchActive(EventArgs args)
-        {
-            var hedef = TargetSelector.GetTarget(_w.Range, DamageType.True);
-            var tahmin = _w.GetPrediction(hedef);
-            if (Orbwalker.ActiveModesFlags.Equals(Orbwalker.ActiveModes.Combo) && _combo["w"].Cast<CheckBox>().CurrentValue && hedef != null && !hedef.IsInvulnerable && tahmin != null && tahmin.HitChance > HitChance.Medium && _w.IsReady())
-            {               
-                _w.Cast(hedef);
-            }          
-            if (Orbwalker.ActiveModesFlags.HasFlag(Orbwalker.ActiveModes.LaneClear))
-            {
-                if (Twitch.ManaPercent >= _laneclear["LmanaP"].Cast<Slider>().CurrentValue)
-                    {LanClear();}               
-            }
-            if (Orbwalker.ActiveModesFlags.HasFlag(Orbwalker.ActiveModes.JungleClear))
-            {                
-                if (Twitch.ManaPercent >= _jungleclear["JmanaP"].Cast<Slider>().CurrentValue)
-                    {JunClear(); }                                
-            }
-            if (!_combo["autoE"].Cast<CheckBox>().CurrentValue) return;
-            var rival = EntityManager.Heroes.Enemies.Where(x => x.IsValid && !x.IsDead && !x.IsInvulnerable && x.Passive() && Prediction.Health.GetPrediction(x, 275) < ESpellDamage(x)).FirstOrDefault(d => d.IsInRange(Twitch, _e.Range));
-            if (rival != null && _e.IsReady())
-            { _e.Cast();}
-        }
-        private static void SpellDraw(EventArgs args)
-        {
-            if (_drawings["w"].Cast<CheckBox>().CurrentValue){ _w.DrawRange(Color.FromArgb(130, Color.Green));}
-            if (_drawings["e"].Cast<CheckBox>().CurrentValue){ _e.DrawRange(Color.FromArgb(130, Color.Green));}
-        }
-        private static void LanClear()
-        {
-            if (_laneclear["w"].Cast<CheckBox>().CurrentValue)
-            {
-                var farm = EntityManager.MinionsAndMonsters.GetLaneMinions(EntityManager.UnitTeam.Enemy, Twitch.ServerPosition).Where(x => x.IsInRange(Twitch, _w.Range));              
-                var keyhit = _w.GetBestCircularCastPosition(farm);
-                if (keyhit.HitNumber >= _laneclear["UnitsWhit"].Cast<Slider>().CurrentValue && _e.IsReady())
-                    { _w.Cast(keyhit.CastPosition);}
-                
-            }
-
-            if (!_laneclear["e"].Cast<CheckBox>().CurrentValue) return;
-            {
-                var farm = EntityManager.MinionsAndMonsters.GetLaneMinions(EntityManager.UnitTeam.Enemy, Twitch.ServerPosition).Where(x => x.IsInRange(Twitch, _e.Range) && x.Passive());
-                var objAiMinions = farm as Obj_AI_Minion[] ?? farm.ToArray();
-                if (objAiMinions.Count(c =>Prediction.Health.GetPrediction(c, 275) < ESpellDamage(c) && StacksPassive(c) >= _laneclear["MinionsEstacks"].Cast<Slider>().CurrentValue) >= _laneclear["MinionsEhit"].Cast<Slider>().CurrentValue && _e.IsReady())
-                {_e.Cast();}
-                if (objAiMinions.Count(c => StacksPassive(c) >= _laneclear["MinionsEstacks"].Cast<Slider>().CurrentValue) < _laneclear["MinionsEhit"].Cast<Slider>().CurrentValue && _e.IsReady()) return;
-                {_e.Cast();}
-                
-            }
-        }
-        private static void JunClear()
-        {
-            if (_jungleclear["w"].Cast<CheckBox>().CurrentValue)
-            {
-                var farmjung = EntityManager.MinionsAndMonsters.GetJungleMonsters(Twitch.ServerPosition).FirstOrDefault(x => x.IsInRange(Twitch, 550));
-                if (farmjung != null && _w.IsReady())
-                { _w.Cast(farmjung.ServerPosition); }
-            }
-
-            if (!_jungleclear["e"].Cast<CheckBox>().CurrentValue) return;
-            {
-                var farmjung = EntityManager.MinionsAndMonsters.GetJungleMonsters(Twitch.ServerPosition).FirstOrDefault(x => x.IsInRange(Twitch, _e.Range) && x.Passive());
-                if (farmjung == null || !_e.IsReady()) return;
-                if (_jungleclear["StealRB"].Cast<CheckBox>().CurrentValue)
-                {
-                    if (StealMonster.Contains(farmjung.BaseSkinName))
-                    {
-                        var healtPred = Prediction.Health.GetPrediction(farmjung, 275);
-                        if (ESpellDamage(farmjung) >= healtPred)
-                        { _e.Cast(); }
-                    }
-                }
-                if (!_jungleclear["StealBD"].Cast<CheckBox>().CurrentValue) return;
-                {
-                    if (!StealMonster.Contains(farmjung.BaseSkinName)) return;
-                    var healtPred = Prediction.Health.GetPrediction(farmjung, 275);
-                    if (ESpellDamage(farmjung) >= healtPred)
-                    { _e.Cast(); }
-                }
+                if (monstersDamage.BaseSkinName.Contains("Dragon"))
+                {genislikj = 142; yukseklikj = 9.82f;_dikeyj = 9; _yatayj = -3;}
+                if (monstersDamage.BaseSkinName.Contains("RiftHerald"))
+                {genislikj = 142; yukseklikj = 9.92f;_dikeyj = 8; _yatayj = -3;}
+                if (monstersDamage.BaseSkinName.Contains("Baron"))
+                {genislikj = 192; yukseklikj = 13.82f;_dikeyj = 9; _yatayj = -28;}
+                if (monstersDamage.BaseSkinName.Contains("Blue") || monstersDamage.BaseSkinName.Contains("Red"))
+                {genislikj = 142; yukseklikj = 9.82f;_dikeyj = 7; _yatayj = -3;}
+                if (monstersDamage.BaseSkinName.Contains("Gromp") || monstersDamage.BaseSkinName.Contains("Razorbeak") || monstersDamage.BaseSkinName.Contains("Krug") || monstersDamage.BaseSkinName.Contains("Murkwolf"))
+                {genislikj = 91; yukseklikj = 3.999f;_dikeyj = 7.999f; _yatayj = 22;}
+                if (monstersDamage.BaseSkinName.Contains("Crab"))
+                {genislikj = 59; yukseklikj = 3.999f;_dikeyj = 21.999f; _yatayj = 38;}
+                if (!_drawings["smiteDamage"].Cast<CheckBox>().CurrentValue) continue;
+                var Smite_Damage = Twitch.GetSummonerSpellDamage(monstersDamage, DamageLibrary.SummonerSpells.Smite);
+                var hasarXj = (monstersDamage.TotalShieldHealth() - Smite_Damage > 0 ? monstersDamage.TotalShieldHealth() - Smite_Damage : 0) / (monstersDamage.MaxHealth + monstersDamage.AllShield + monstersDamage.AttackShield + monstersDamage.MagicShield); ;
+                var hasarYj = monstersDamage.TotalShieldHealth() / (monstersDamage.MaxHealth + monstersDamage.AllShield + monstersDamage.AttackShield + monstersDamage.MagicShield);
+                var goj = new Vector2((int)(monstersDamage.HPBarPosition.X + _yatayj + hasarXj * genislikj), (int)monstersDamage.HPBarPosition.Y + _dikeyj);
+                var finishj = new Vector2((int)(monstersDamage.HPBarPosition.X + _yatayj + hasarYj * genislikj) + 1, (int)monstersDamage.HPBarPosition.Y + _dikeyj);
+                Drawing.DrawLine(goj, finishj, yukseklikj, Color.FromArgb(180, Color.Green));
             }
         }
     }
