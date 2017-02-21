@@ -68,8 +68,7 @@ namespace FrOnDaL_Twitch
             _q = new Spell.Active(SpellSlot.Q);
             _w = new Spell.Skillshot(SpellSlot.W, 950, SkillShotType.Circular, 250, 1400, 280) { AllowedCollisionCount = -1, MinimumHitChance = HitChance.Medium };
             _e = new Spell.Active(SpellSlot.E, 1200);
-            //_r = new Spell.Active(SpellSlot.R);
-            Smite = new Spell.Targeted(Twitch.Spellbook.Spells.FirstOrDefault(s => s.SData.Name.ToLower().Contains("smite")).Slot, 570);
+            //_r = new Spell.Active(SpellSlot.R);          
             _main = MainMenu.AddMenu("FrOnDaL Twitch", "index");
             _main.AddGroupLabel("Welcome FrOnDaL Twitch");
             _main.AddSeparator(5);
@@ -118,10 +117,11 @@ namespace FrOnDaL_Twitch
             _misc.AddSeparator(5);
             _misc.AddLabel("Auto Blade of the Ruined King and Bilgewater Cutlass");
             _misc.Add("botrk", new CheckBox("Use BotRk (On/Off)"));
-            _misc.Add("autoCutlass", new CheckBox("Use Bilgewater Cutlass (On/Off)"));         
+            _misc.Add("autoCutlass", new CheckBox("Use Bilgewater Cutlass (On/Off)"));          
             _misc.AddSeparator(5);
             _misc.AddLabel("Auto Smite Settings");
             _misc.Add("autosmite", new KeyBind("Use Auto Smite (On/Off)", false, KeyBind.BindTypes.PressToggle, 'M'));
+            Smite = new Spell.Targeted(Twitch.Spellbook.Spells.FirstOrDefault(s => s.SData.Name.ToLower().Contains("smite")).Slot, 570);
         }
         public static void OnLevelUpR(Obj_AI_Base sender, Obj_AI_BaseLevelUpEventArgs args)
         {if (Twitch.Level > 4){_lvl.LevelSpell(SpellSlot.R);}}
