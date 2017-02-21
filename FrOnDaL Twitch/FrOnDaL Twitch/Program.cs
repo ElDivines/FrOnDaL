@@ -118,8 +118,7 @@ namespace FrOnDaL_Twitch
             _misc.AddSeparator(5);
             _misc.AddLabel("Auto Blade of the Ruined King and Bilgewater Cutlass");
             _misc.Add("botrk", new CheckBox("Use BotRk (On/Off)"));
-            _misc.Add("autoCutlass", new CheckBox("Use Bilgewater Cutlass (On/Off)"));
-            _misc.Add("botrkEstacks", new Slider("Use Botrk {0} stacks Passive", 2, 1, 6));
+            _misc.Add("autoCutlass", new CheckBox("Use Bilgewater Cutlass (On/Off)"));         
             _misc.AddSeparator(5);
             _misc.AddLabel("Auto Smite Settings");
             _misc.Add("autosmite", new KeyBind("Use Auto Smite (On/Off)", false, KeyBind.BindTypes.PressToggle, 'M'));
