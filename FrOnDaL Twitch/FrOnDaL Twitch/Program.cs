@@ -121,6 +121,13 @@ namespace FrOnDaL_Twitch
             _misc.AddSeparator(5);
             _misc.AddLabel("Auto Smite Settings");
             _misc.Add("autosmite", new KeyBind("Use Auto Smite (On/Off)", false, KeyBind.BindTypes.PressToggle, 'M'));
+            _misc.AddLabel("Enable Auto Smite for");
+            _misc.Add("reblue", new CheckBox("Auto Smite Blue and Red (On/Off)"));
+            _misc.Add("wolf", new CheckBox("Auto Smite MurkWolf (On/Off)", false));
+            _misc.Add("gromp", new CheckBox("Auto Smite Gromp (On/Off)", false));
+            _misc.Add("krug", new CheckBox("Auto Smite Krugs (On/Off)", false));
+            _misc.Add("razor", new CheckBox("Auto Smite Razorbeak (On/Off)", false));
+            _misc.Add("hero", new CheckBox("Auto Smite Champions (On/Off)"));
             var firstOrDefault = Twitch.Spellbook.Spells.FirstOrDefault(s => s.SData.Name.ToLower().Contains("smite"));
             if (firstOrDefault != null)
                 _smite = new Spell.Targeted(firstOrDefault.Slot, 570);
@@ -200,18 +207,41 @@ namespace FrOnDaL_Twitch
             if (!Twitch.IsDead && _misc["autosmite"].Cast<KeyBind>().CurrentValue)
             { 
             var smiteChampion = TargetSelector.GetTarget(_smite.Range, DamageType.Physical);
-            var smiteMonster = EntityManager.MinionsAndMonsters.Monsters.LastOrDefault(x => Twitch.Distance(x) < 1000 && !x.BaseSkinName.ToLower().Contains("mini"));
+            var smiteMonster = EntityManager.MinionsAndMonsters.Monsters.LastOrDefault(x => Twitch.Distance(x) < 1000 && !x.BaseSkinName.ToLower().Contains("mini") && !x.BaseSkinName.Contains("Crab"));
             if (_smite.IsReady())
             {
-                if (Orbwalker.ActiveModesFlags.Equals(Orbwalker.ActiveModes.Combo) && smiteChampion != null && _smite.IsInRange(smiteChampion))
+                if (Orbwalker.ActiveModesFlags.Equals(Orbwalker.ActiveModes.Combo) && smiteChampion != null && _smite.IsInRange(smiteChampion) && _misc["hero"].Cast<CheckBox>().CurrentValue)
                 {
                     _smite.Cast(smiteChampion);
                 }
                 if (smiteMonster != null &&
                     _smite.IsInRange(smiteMonster) && smiteMonster.Health <= Twitch.GetSummonerSpellDamage(smiteChampion, DamageLibrary.SummonerSpells.Smite))
                 {
-                    _smite.Cast(smiteMonster);
-                }        
+                    if (_misc["reblue"].Cast<CheckBox>().CurrentValue && (smiteMonster.BaseSkinName.Contains("Blue") || smiteMonster.BaseSkinName.Contains("Red")))
+                    {
+                        _smite.Cast(smiteMonster);
+                    }
+                    if (_misc["wolf"].Cast<CheckBox>().CurrentValue && smiteMonster.BaseSkinName.Contains("Murkwolf"))
+                    {
+                        _smite.Cast(smiteMonster);
+                    }
+                    if (_misc["gromp"].Cast<CheckBox>().CurrentValue && smiteMonster.BaseSkinName.Contains("Gromp"))
+                    {
+                        _smite.Cast(smiteMonster);
+                    }
+                    if (_misc["krug"].Cast<CheckBox>().CurrentValue && smiteMonster.BaseSkinName.Contains("Krug"))
+                    {
+                        _smite.Cast(smiteMonster);
+                    }
+                    if (_misc["razor"].Cast<CheckBox>().CurrentValue && smiteMonster.BaseSkinName.Contains("Razorbeak"))
+                    {
+                        _smite.Cast(smiteMonster);
+                    }
+                    if (smiteMonster.BaseSkinName.Contains("Dragon") || smiteMonster.BaseSkinName.Contains("Baron") || smiteMonster.BaseSkinName.Contains("RiftHerald"))
+                    {
+                        _smite.Cast(smiteMonster);
+                    }
+                }                       
             }
             }
             if (!_jungleclear["e"].Cast<CheckBox>().CurrentValue) return;
@@ -279,26 +309,20 @@ namespace FrOnDaL_Twitch
         }
         private static void HasarGostergesiJungle(EventArgs args)
         {
-            foreach (var monstersDamage in EntityManager.MinionsAndMonsters.Monsters.Where(x => Twitch.Distance(x) < 1000 && !x.BaseSkinName.ToLower().Contains("mini") && !x.IsDead && x.IsHPBarRendered && x.VisibleOnScreen))
-            {
-                if (monstersDamage.BaseSkinName.Contains("Dragon"))
-                {_genislikj = 142; _yukseklikj = 9.82f;_dikeyj = 9; _yatayj = -3;}
+            foreach (var monstersDamage in EntityManager.MinionsAndMonsters.Monsters.Where(x => Twitch.Distance(x) < 1000 && !x.BaseSkinName.ToLower().Contains("mini") && !x.BaseSkinName.Contains("Crab") && !x.BaseSkinName.Contains("Dragon") && !x.BaseSkinName.Contains("Baron") && !x.IsDead && x.IsHPBarRendered && x.VisibleOnScreen))
+            {              
                 if (monstersDamage.BaseSkinName.Contains("RiftHerald"))
-                {_genislikj = 142; _yukseklikj = 9.92f;_dikeyj = 8; _yatayj = -3;}
-                if (monstersDamage.BaseSkinName.Contains("Baron"))
-                {_genislikj = 192; _yukseklikj = 13.82f;_dikeyj = 9; _yatayj = -28;}
+                {_genislikj = 142; _yukseklikj = 9.92f;_dikeyj = 8; _yatayj = -3;}    
                 if (monstersDamage.BaseSkinName.Contains("Blue") || monstersDamage.BaseSkinName.Contains("Red"))
                 {_genislikj = 142; _yukseklikj = 9.82f;_dikeyj = 7; _yatayj = -3;}
                 if (monstersDamage.BaseSkinName.Contains("Gromp") || monstersDamage.BaseSkinName.Contains("Razorbeak") || monstersDamage.BaseSkinName.Contains("Krug") || monstersDamage.BaseSkinName.Contains("Murkwolf"))
-                {_genislikj = 91; _yukseklikj = 3.999f;_dikeyj = 7.999f; _yatayj = 22;}
-                if (monstersDamage.BaseSkinName.Contains("Crab"))
-                {_genislikj = 59; _yukseklikj = 3.999f;_dikeyj = 21.999f; _yatayj = 38;}
+                {_genislikj = 91; _yukseklikj = 3.999f;_dikeyj = 7.999f; _yatayj = 22;}           
                 if (!_drawings["smiteDamage"].Cast<CheckBox>().CurrentValue) continue;
                 var smiteDamage = Twitch.GetSummonerSpellDamage(monstersDamage, DamageLibrary.SummonerSpells.Smite);
                 var hasarXj = (monstersDamage.TotalShieldHealth() - smiteDamage > 0 ? monstersDamage.TotalShieldHealth() - smiteDamage : 0) / (monstersDamage.MaxHealth + monstersDamage.AllShield + monstersDamage.AttackShield + monstersDamage.MagicShield);
                 var hasarYj = monstersDamage.TotalShieldHealth() / (monstersDamage.MaxHealth + monstersDamage.AllShield + monstersDamage.AttackShield + monstersDamage.MagicShield);
                 var goj = new Vector2((int)(monstersDamage.HPBarPosition.X + _yatayj + hasarXj * _genislikj), (int)monstersDamage.HPBarPosition.Y + _dikeyj);
-                var finishj = new Vector2((int)(monstersDamage.HPBarPosition.X + _yatayj + hasarYj * _genislikj) + 1, (int)monstersDamage.HPBarPosition.Y + _dikeyj);
+                var finishj = new Vector2((int)(monstersDamage.HPBarPosition.X + _yatayj + hasarYj * _genislikj) + 1, (int)monstersDamage.HPBarPosition.Y + _dikeyj); 
                 Drawing.DrawLine(goj, finishj, _yukseklikj, Color.FromArgb(180, Color.Green));
             }
         }
