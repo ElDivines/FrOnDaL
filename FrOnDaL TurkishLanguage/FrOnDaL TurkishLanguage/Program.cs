@@ -1,48 +1,30 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Text;
 using EloBuddy;
-using EloBuddy.Sandbox;
-using EloBuddy.SDK.Events;
-using EloBuddy.SDK.Menu;
-using EloBuddy.SDK.Menu.Values;
+using System.IO;
+using System.Net;
+using System.Linq;
+using System.Text;
 using Newtonsoft.Json;
+using EloBuddy.Sandbox;
+using EloBuddy.SDK.Menu;
+using EloBuddy.SDK.Events;
+using System.Globalization;
+using EloBuddy.SDK.Menu.Values;
+using System.Collections.Generic;
 
 namespace FrOnDaL_TurkishLanguage
 {
     internal class Program
-    {
-
-        private const string LanguageUrl = "https://raw.githubusercontent.com/finndev/iCreative-Mirror/master/LanguageTranslator/LanguageTranslator/Translations.json";
-        private static string _languageWay;
-        private static string _addonWay;
-        private static Menu _main;
+    {    
         private static bool _go;
+        private static Menu _main;
         private static bool _finish;
-        private static Dictionary<string, Dictionary<Language, Dictionary<int, string>>> _turkishLanguage = new Dictionary<string, Dictionary<Language, Dictionary<int, string>>>();
-        private static readonly Dictionary<string, Language> DefaultLanguage = new Dictionary<string, Language>
-        {
-            { "en-US", Language.English },
-            { "en-GB", Language.English },
-            { "es-ES", Language.Spanish },
-            { "fr-FR", Language.French },
-            { "de-DE", Language.German },
-            { "it-IT", Language.Italian },
-            { "pt-BR", Language.Portuguese },
-            { "pt-PT", Language.Portuguese },
-            { "pl-PL", Language.Polish },
-            { "tr-TR", Language.Turkish },
-            { "zh-CHS", Language.Chinese },
-            { "zh-CHT", Language.ChineseTraditional },
-            { "ko-KR", Language.Korean },
-            { "ro-RO", Language.Romanian },
-            { "vi-VN", Language.Vietnamese },
-        };
+        private static string _addonWay;
+        private static string _languageWay;
         private static bool _languageWayEx;
+        private const string LanguageUrl = "https://raw.githubusercontent.com/FrOnDaL/FrOnDaL/master/FrOnDaL TurkishLanguage/FrOnDaL%20TurkishLanguage/_turkishLanguage.json";
+        private static Dictionary<string, Dictionary<Language, Dictionary<int, string>>> _turkishLanguage = new Dictionary<string, Dictionary<Language, Dictionary<int, string>>>();
+        private static readonly Dictionary<string, Language> DefaultLanguage = new Dictionary<string, Language>{{ "en-US", Language.English }, { "en-GB", Language.English }, { "tr-TR", Language.Turkish }}; 
         private static Language DefaultLang => DefaultLanguage.ContainsKey(CultureInfo.InstalledUICulture.ToString()) ? DefaultLanguage[CultureInfo.InstalledUICulture.ToString()] : Language.English;
         private static void Main()
         {
@@ -82,16 +64,13 @@ namespace FrOnDaL_TurkishLanguage
                     }
                 };
             };
-        }
-      
-
+        }     
         private static void LanguageRefresh()
         {
             var gitHub = new WebClient { Encoding = Encoding.UTF8 };
             gitHub.DownloadStringCompleted += LanguageRefreshed;
             gitHub.DownloadStringAsync(new Uri(LanguageUrl, UriKind.Absolute));
         }
-
         private static void LanguageRefreshed(object sender, DownloadStringCompletedEventArgs args)
         {
             if (args.Cancelled || args.Error != null)
@@ -99,8 +78,7 @@ namespace FrOnDaL_TurkishLanguage
                 if (_languageWayEx)
                 {
                     _finish = true;
-                }
-                return;
+                } return;
             }
             File.WriteAllText(_languageWay, args.Result);
             var languageTransform = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<Language, Dictionary<int, string>>>>(args.Result);
@@ -110,7 +88,6 @@ namespace FrOnDaL_TurkishLanguage
             }
             _finish = true;
         }
-
         private static void TurkishLanguageActive()
         {
             if (_go) return;
@@ -129,7 +106,6 @@ namespace FrOnDaL_TurkishLanguage
             _main.AddLabel("çevirmez. Bunu yapamamızdaki temel neden sizin o anda kullandığınız addon'ların 'Turkish ");
             _main.AddLabel("Language' bildirmek ve çevirisini yapmasını sağlamak.");
         }
-
         private static void TurkishTranslation(Language from, Language to)
         {
             foreach (var particletranslate in MainMenu.MenuInstances)
@@ -165,7 +141,6 @@ namespace FrOnDaL_TurkishLanguage
                 }
             }
         }
-
         private static string GetTurkishTranslation(string addonName, Language from, Language to, string displayName)
         {
             if (!_turkishLanguage.ContainsKey(addonName)) return displayName;
@@ -185,24 +160,8 @@ namespace FrOnDaL_TurkishLanguage
                 {
                     return words[to][particletranslate.Key];
                 }
-            }
-            return displayName;
+            } return displayName;
         }
-        private enum Language
-        {
-            English,
-            Spanish,
-            French,
-            German,
-            Italian,
-            Portuguese,
-            Polish,
-            Turkish,
-            Chinese,
-            ChineseTraditional,
-            Korean,
-            Romanian,
-            Vietnamese
-        }
+        private enum Language { English, Turkish }
     }
 }
