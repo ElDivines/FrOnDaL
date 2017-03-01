@@ -592,8 +592,7 @@
 				  "104": "Low",
 				  "105": "Off",
 				  "106": "Ranges",
-				  "107": "Prediction",
-				  "108": "Condemn(E)  "
+				  "107": "Prediction"
 		         },
 	  "Turkish": {
                   "0": "Aka´s Vayne",
@@ -602,7 +601,7 @@
                   "3": "Tuşlar",
                   "4": "Kombo",
                   "5": "Q Ayarları",
-                  "6": "Condemn(E)",
+                  "6": "E Ayarları",
                   "7": "Dürtme",
                   "8": "Kaçış(Flee)",
                   "9": "LaneTemizleme",
@@ -703,8 +702,7 @@
 				  "104": "Düşük",
 				  "105": "Kapalı",
 				  "106": "Büyü Menzilleri",
-				  "107": "Tahmin Göstergesi",
-				  "108": "E Ayarları"
+				  "107": "Tahmin Göstergesi"
             }
 	  }
      }
