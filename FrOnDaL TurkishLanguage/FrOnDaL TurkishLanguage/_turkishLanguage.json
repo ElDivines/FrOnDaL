@@ -44,8 +44,7 @@
                   "17": "En fazla Gecikme (Varsayılan 350)",
                   "18": "Büyüyle Uzaklaşma",
                   "19": "Tespit Edilen Büyüler:"
-            }
-           
+            }         
       },
       "Target Selector": {
             "English": {
@@ -59,8 +58,7 @@
                   "7": "Only Attack Selected Target Settings",
                   "8": "Enable only attack selected target",
                   "9": "Only attack selected target toggle"
-            },
-            
+            },           
             "Turkish": {
                   "0": "Hedef Seçici",
                   "1": "Hedef Seçim Modu",
@@ -72,8 +70,7 @@
                   "7": "Sadece Seçilmiş Hedef Saldırı Ayarları",
                   "8": "Sadece Seçilen Hedefe Saldırma Aktif",
                   "9": "Sadece Seçilen Hedefe Saldır Kısayol Tuşu"
-            }
-           
+            }           
       },
       "Orbwalker": {
             "English": {
@@ -558,29 +555,26 @@
                   "82": "Draw Condemn",
                   "83": "Draw Tumble",
                   "84": "Draw AutoPos",
-				  "85": "Mode:",
-				  "86": "Autoo",
-				  "87": "Manuall",
-				  "88": "Description: In Auto mode,",
-				  "89": "Aka´s Vayne will use all mechanical features automatically to get the full potential.",
-				  "90": "Mechanical Settings",
-				  "91": "Safety Settings",
-				  "92": "Evade Integration",
-				  "93": "Dynamic Q Safety",
-				  "94": "Dont Q into enemies",
-				  "95": "Dont Q into walls",
-				  "96": "Dont Q into traps",
-				  "97": "Dont Q into tower",
-				  "98": "Ignore all checks",
-				  "99": "Condemn(E)xxx",
-				  "100": "Paid",
-				  "101": "Free",
-				  "102": "High",
-				  "103": "Medium",
-				  "104": "Low",
-				  "105": "Off",
-				  "106": "Ranges",
-				  "107": "Prediction"
+				  "85": "Description: In Auto mode,",
+				  "86": "Aka´s Vayne will use all mechanical features automatically to get the full potential.",
+				  "87": "Mechanical Settings",
+				  "88": "Safety Settings",
+				  "89": "Evade Integration",
+				  "90": "Dynamic Q Safety",
+				  "91": "Dont Q into enemies",
+				  "92": "Dont Q into walls",
+				  "93": "Dont Q into traps",
+				  "94": "Dont Q into tower",
+				  "95": "Ignore all checks",
+				  "96": "Condemn(E)xxx",
+				  "97": "Paid",
+				  "98": "Free",
+				  "99": "High",
+				  "100": "Medium",
+				  "101": "Low",
+				  "102": "Off",
+				  "103": "Ranges",
+				  "104": "Prediction"
 		         },
 	  "Turkish": {
                   "0": "Aka´s Vayne",
@@ -668,29 +662,26 @@
                   "82": "Göster (E)Condemn",
                   "83": "Göster Takla",
                   "84": "Göster Otomatik Pozisyon",
-				  "85": "Mod:",
-				  "86": "Otomatikkkkkkkk",
-				  "87": "Manuel",
-				  "88": "Açıklama: Otomatik Modda,",
-				  "89": "Tam potansiyelini elde etmek için tüm mekanik özelliklerini otomatik olarak kullanacaktır.",
-				  "90": "Mekanik Ayarlar",
-				  "91": "Güvenlik Ayarları",
-				  "92": "Kaçış(Evade) Entegrasyonu",
-				  "93": "Güvenli Q Dinamiği",
-				  "94": "Düşmanların içine Q Kullanma",
-				  "95": "Duvara doğru Q kullanma",
-				  "96": "Tuzaklara doğru Q kullanma",
-				  "97": "Kuleye doğru Q kullanma",
-				  "98": "Tüm Kontrolleri Yoksay",  
-				  "99": "E Ayarları",
-				  "100": "Ücretli",
-				  "101": "Beleş",
-				  "102": "Yüksek",
-				  "103": "Orta",
-				  "104": "Düşük",
-				  "105": "Kapalı",
-				  "106": "Büyü Menzilleri",
-				  "107": "Tahmin Göstergesi"
+				  "85": "Açıklama: Otomatik Modda,",
+				  "86": "Tam potansiyelini elde etmek için tüm mekanik özelliklerini otomatik olarak kullanacaktır.",
+				  "87": "Mekanik Ayarlar",
+				  "88": "Güvenlik Ayarları",
+				  "89": "Kaçış(Evade) Entegrasyonu",
+				  "90": "Güvenli Q Dinamiği",
+				  "91": "Düşmanların içine Q Kullanma",
+				  "92": "Duvara doğru Q kullanma",
+				  "93": "Tuzaklara doğru Q kullanma",
+				  "94": "Kuleye doğru Q kullanma",
+				  "95": "Tüm Kontrolleri Yoksay",  
+				  "96": "E Ayarları",
+				  "97": "Ücretli",
+				  "98": "Beleş",
+				  "99": "Yüksek",
+				  "100": "Orta",
+				  "101": "Düşük",
+				  "102": "Kapalı",
+				  "103": "Büyü Menzilleri",
+				  "104": "Tahmin Göstergesi"
             }
 	  }
      }
