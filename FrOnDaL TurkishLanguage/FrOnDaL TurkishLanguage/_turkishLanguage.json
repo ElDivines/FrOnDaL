@@ -590,7 +590,8 @@
 				  "104": "Low",
 				  "105": "Off",
 				  "106": "Ranges",
-				  "107": "Prediction"
+				  "107": "Prediction",
+				  "108": "Condemn(E) ",
 		         },
 	  "Turkish": {
                   "0": "Aka´s Vayne",
@@ -700,7 +701,8 @@
 				  "104": "Düşük",
 				  "105": "Kapalı",
 				  "106": "Büyü Menzilleri",
-				  "107": "Tahmin Göstergesi"
+				  "107": "Tahmin Göstergesi",
+				  "108": "E Ayarları"
             }
 	  }
      }
