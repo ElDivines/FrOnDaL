@@ -1287,31 +1287,8 @@
 				"82": "Buffs",
 				"83": "Small Camps",
 				"84": "Flee",
-				"85": "Flee Settings",
-				"86": "Use W while Fleeing",
-				"87": "Use E while Fleeing",
-				"88": "Use W if HitChance is {0}",
-				"89": "Use E if HitChance is {0}",
-				"90": "Drawing",
-				"91": "Drawing Settings",
-				"92": "Draw Q Range",
-				"93": "Draw W Range",
-				"94": "Draw E Range",
-				"95": "Prediction Drawings",
-				"96": "Draw W Prediction",
-				"97": "Draw R Prediction (In consideration of Range before R)",
-				"98": "DamageIndicator",
-				"99": "Draw Damage",
-				"100": "Calculate Q Damage",
-				"101": "Calculate W Damage",
-				"102": "Calculate E Damage",
-				"103": "Calculate R Damage",
-				"104": "Color Settings for Damage Indicator",
-				"105": "Alpha: ",
-				"106": "Red: ",
-				"107": "Green: ",
-				"108": "Blue: ",
-				
+				"85": "Flee Settings"
+
 			
 			},
 			"Turkish": {
@@ -1400,31 +1377,8 @@
 				"82": "Güçlendirmeler",
 				"83": "Küçük Orman Kampları",
 				"84": "Kaçış(Flee)",
-				"85": "Kaçış Ayarları,
-				"86": "Kaçmak için W kullan",
-				"87": "Kaçmak için E kullan",
-				"88": "W isabet oranı %{0}",
-				"89": "E isabet oranı %{0}",
-				"90": "Göstergeler",
-				"91": "Gösterge Ayarları",
-				"92": "Q Menzilini Göster",
-				"93": "W Menzilini Göster",
-				"94": "E Menzilini Göster",
-				"95": "Tahmin Göstergeleri",
-				"96": "Tahmini W Gideceği Yeri Göster",
-				"97": "Tahmini R Gideceği Yeri Göster",
-				"98": "Hasar Göstergesi",
-				"99": "Büyülerin Verdiği Hasarı Göster",
-				"100": "Q Hasarını Hesapla ve Göster",
-				"101": "W Hasarını Hesapla ve Göster",
-				"102": "E Hasarını Hesapla ve Göster",
-				"103": "R Hasarını Hesapla ve Göster",
-				"104": "Hasar Göstergesi için Renk Ayarları",
-				"105": "Alfa Renk Oranı: ",
-				"106": "Kırmızı Renk Oranı: ",
-				"107": "Yeşil Renk Oranı: ",
-				"108": "Mavi Renk Oranı: ",
-				
+				"85": "Kaçış Ayarları
+
 			}
 	 }
 
