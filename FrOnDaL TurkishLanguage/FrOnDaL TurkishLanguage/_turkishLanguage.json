@@ -1199,6 +1199,67 @@
                   "190": "Seviye 17",
                   "191": "Seviye 18"
             }
-      }
+      },
+	  "Jin-XXX": {
+            "English": {
+				"0": "Jin-XXX",
+				"1": "This addon is made by KarmaPanda and should not be redistributed in any way.",
+				"2": "Any unauthorized redistribution without credits will result in severe consequences.",
+				"3": "Thank you for using this addon and have a fun time!",
+				"4": "Combo",
+				"5": "Combo Settings",
+				"6": "Use Q",
+				"7": "Use W",
+				"8": "Use E",
+				"9": "Use R",
+				"10": "ManaManager",
+				"11": "ManaManager for Q",
+				"12": "ManaManager for W",
+				"13": "ManaManager for E",
+				"14": "ManaManager for R",
+				"15": "Hit on Champion is Prioritized first over Minion",
+				"16": "Use Q if Hit {0} Champion(s)",
+				"17": "Use R if Hit {0} Champion(s)",
+				"18": "Prediction Settings",
+				"19": "Use W if HitChance % is {0}",
+				"20": "Use E if HitChance % is {0}",
+				"21": "Use R if HitChance % is {0}",
+				"22": "Extra Settings",
+				"23": "Only Use W if Player Range from Target is more than {0}",
+				"24": "Only Use E if Player Range from Target is more than {0}",
+				"25": "Max E Range",
+				"26": "Max R Range"
+			
+			},
+			"Turkish": {
+				"0": "Jin-XXX",
+				"1": "Bu addon KarmaPanda tarafından üretilmiştir ve herhangi bir şekilde yeniden dağıtılmamalıdır.",
+				"2": "Kredisiz herhangi bir yetkisiz yeniden dağıtım, ciddi sonuçlar doğuracaktır.",
+				"3": "Bu eklentiyi kullandığınız için teşekkürler, eğlenin!",
+				"4": "Kombo",
+				"5": "Kombo Ayarları",
+				"6": "Q kullan",
+				"7": "W kullan",
+				"8": "E kullan",
+				"9": "R kullan",
+				"10": "Mana Yöneticisi",
+				"11": "Q için ManaManager",
+				"12": "Mana Ayarı için W",
+				"13": "E için Mana Manager",
+				"14": "Mana Ayarı için R",
+				"15": "Şampiyon Hit, Minion'dan önce önceliklidir",
+				"16": "Hit {0} Şampiyon (lar) varsa Q kullanın",
+				"17": "Hit {0} Şampiyon (lar) varsa R kullanın",
+				"18": "Tahmin Ayarları",
+				"19": "HitChance % {0} ise W kullanın",
+				"20": "HitChance % {0} ise E kullanın",
+				"21": "HitChance % {0} ise R kullanın",
+				"22": "Ekstra Ayarlar",
+				"23": "Hedeften Player Aralığı {0} dan fazla ise W kullanın",
+				"24": "Hedeften Player Aralığı {0} dan fazla ise E kullanın",
+				"25": "Max E Aralık",
+				"26": "Max R Aralığı"
+			}
+	 }
 
-     }
+ }
