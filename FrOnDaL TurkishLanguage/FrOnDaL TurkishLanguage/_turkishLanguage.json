@@ -58,13 +58,17 @@
                   "6": "MostAttackDamage",
                   "7": "LeastHealth",
                   "8": "Closest",
-                  "9": "Selected Target Settings",
-                  "10": "Enable manual selected target",
-                  "11": "Draw a circle around selected target",
-                  "12": "Draw notifications about selected target",
-                  "13": "Only Attack Selected Target Settings",
-                  "14": "Enable only attack selected target",
-                  "15": "Only attack selected target toggle"
+				  "9": "HighestPriority",
+				  "10": "LessAttack",
+				  "11": "LessCast",
+				  "12": "NearMouse",
+                  "13": "Selected Target Settings",
+                  "14": "Enable manual selected target",
+                  "15": "Draw a circle around selected target",
+                  "16": "Draw notifications about selected target",
+                  "17": "Only Attack Selected Target Settings",
+                  "18": "Enable only attack selected target",
+                  "19": "Only attack selected target toggle"
             },
             
             "Turkish": {
@@ -77,13 +81,17 @@
                   "6": "YüksekHasarVerene",
                   "7": "Canı aza",
                   "8": "En yakına",
-                  "9": "Seçilen Hedef Ayarları",
-                  "10": "Elle Seçimi Aktif Et,Tıkladığınız Hedefe Sabit",
-                  "11": "Seçilen Hedefi Daire ile Göster (Kırmızı)",
-                  "12": "Hedefi Şeçtiğinize Dair Bilgi İkonu Gösterir",
-                  "13": "Sadece Seçilmiş Hedef Saldırı Ayarları",
-                  "14": "Sadece Seçilen Hedefe Saldırma Aktif",
-                  "15": "Sadece Seçilen Hedefe Saldır Kısayol Tuşu"
+				  "9": "Yüksek Öncelik",
+				  "10": "Az Düşman",
+				  "11": "LessCast",
+				  "12": "Fare Yakınınakine",
+                  "13": "Seçilen Hedef Ayarları",
+                  "14": "Elle Seçimi Aktif Et,Tıkladığınız Hedefe Sabit",
+                  "15": "Seçilen Hedefi Daire ile Göster (Kırmızı)",
+                  "16": "Hedefi Şeçtiğinize Dair Bilgi İkonu Gösterir",
+                  "17": "Sadece Seçilmiş Hedef Saldırı Ayarları",
+                  "18": "Sadece Seçilen Hedefe Saldırma Aktif",
+                  "19": "Sadece Seçilen Hedefe Saldır Kısayol Tuşu"
             }
            
       },
