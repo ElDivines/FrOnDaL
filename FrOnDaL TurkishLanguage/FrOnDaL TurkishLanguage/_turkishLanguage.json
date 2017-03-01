@@ -573,9 +573,8 @@
 				  "100": "Medium",
 				  "101": "Low",
 				  "102": "Off",
-				  "103": "Ranges",
-				  "104": "Prediction"
-		         },
+				  "103": "Ranges"
+		   },
 	  "Turkish": {
                   "0": "Aka´s Vayne",
                   "1": "Abonelik",
@@ -658,7 +657,7 @@
                   "78": "Göster Q",
                   "79": "Göster E",
                   "80": "Büyüler Sadece Hazırsa Göster",
-                  "81": "Prediction",
+                  "81": "Tahmin Göstergesi",
                   "82": "Göster (E)Condemn",
                   "83": "Göster Takla",
                   "84": "Göster Otomatik Pozisyon",
@@ -680,8 +679,9 @@
 				  "100": "Orta",
 				  "101": "Düşük",
 				  "102": "Kapalı",
-				  "103": "Büyü Menzilleri",
-				  "104": "Tahmin Göstergesi"
+				  "103": "Büyü Menzilleri"
             }
 	  }
+
+
      }
