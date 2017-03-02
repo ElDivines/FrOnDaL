@@ -105,7 +105,7 @@ namespace FrOnDaL_Caitlyn
             _combo.AddGroupLabel("Combo mode settings for Twitch");
             _combo.AddLabel("Use Combo Q (On/Off)");
             _combo.Add("q", new CheckBox("Use Q"));
-            _combo.Add("AfterAaQ", new CheckBox("Use Q After AA"));
+            _combo.Add("AfterAaQ", new CheckBox("Use Q After AA", false));
             _combo.AddSeparator(5);
             _combo.AddLabel("Use Combo W (On/Off)");
             _combo.Add("w", new CheckBox("Use W"));
@@ -118,7 +118,7 @@ namespace FrOnDaL_Caitlyn
             _combo.AddSeparator(5);
             _combo.AddLabel("Use Combo E (On/Off)");
             _combo.Add("e", new CheckBox("Use E"));
-            _combo.Add("AfterAaE", new CheckBox("Use E After AA"));
+            _combo.Add("AfterAaE", new CheckBox("Use E After AA", false));
             _combo.Add("EHitChance", new Slider("E hitchance percent : {0}", 65));
             _combo.AddSeparator(5);
             _combo.AddLabel("Use R");
