@@ -93,6 +93,7 @@ namespace FrOnDaL_TurkishLanguage
             if (_go) return;
             _finish = false;
             _go = true;
+            Chat.Print("<font color='#00FFCC'><b>[FrOnDaL]</b></font> Turkish Language Successfully loaded.");
             _main = MainMenu.AddMenu("Turkish Language", "FrOnDaL_TurkishLanguage");
             _main.AddGroupLabel("Welcome FrOnDaL TurkishLanguage");
             var turkishexisting = Enum.GetValues(typeof(Language)).Cast<Language>().ToArray().Select(x => x.ToString());
