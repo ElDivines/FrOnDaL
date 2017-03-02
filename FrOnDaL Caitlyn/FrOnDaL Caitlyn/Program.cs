@@ -93,6 +93,7 @@ namespace FrOnDaL_Caitlyn
             Drawing.OnDraw += SpellDraw;         
             _lvl = Caitlyn.Spellbook;
             Obj_AI_Base.OnLevelUp += OnLevelUpR;
+            Orbwalker.OnPostAttack += QandEafterAa;
             Chat.Print("<font color='#00FFCC'><b>[FrOnDaL]</b></font> Caitlyn Successfully loaded.");
             _main = MainMenu.AddMenu("FrOnDaL Caitlyn", "index");
             _main.AddGroupLabel("Welcome FrOnDaL Twitch");
@@ -104,6 +105,7 @@ namespace FrOnDaL_Caitlyn
             _combo.AddGroupLabel("Combo mode settings for Twitch");
             _combo.AddLabel("Use Combo Q (On/Off)");
             _combo.Add("q", new CheckBox("Use Q"));
+            _combo.Add("AfterAaQ", new CheckBox("Use Q After AA"));
             _combo.AddSeparator(5);
             _combo.AddLabel("Use Combo W (On/Off)");
             _combo.Add("w", new CheckBox("Use W"));
@@ -114,12 +116,14 @@ namespace FrOnDaL_Caitlyn
             _combo.AddSeparator(3);
             _combo.Add("WHitChance", new Slider("W hitchance percent : {0}", 85));
             _combo.AddSeparator(5);
-            _combo.AddLabel("Use E");
+            _combo.AddLabel("Use Combo E (On/Off)");
             _combo.Add("e", new CheckBox("Use E"));
+            _combo.Add("AfterAaE", new CheckBox("Use E After AA"));
             _combo.Add("EHitChance", new Slider("E hitchance percent : {0}", 65));
             _combo.AddSeparator(5);
             _combo.AddLabel("Use R");
             _combo.Add("r", new KeyBind("Use R Key", false, KeyBind.BindTypes.HoldActive, 'T'));
+            _combo.AddSeparator(5);
             _laneclear = _main.AddSubMenu("Laneclear");
             _laneclear.AddGroupLabel("LaneClear mode settings for Twitch");
             _laneclear.Add("LmanaP", new Slider("LaneClear Mana Control Min mana percentage ({0}%) to use W and E", 50, 1));
@@ -215,9 +219,20 @@ namespace FrOnDaL_Caitlyn
                 }
             }
         }
+        public static void QandEafterAa(AttackableUnit hedefQandE, EventArgs args)
+        {
+            if (Orbwalker.ActiveModesFlags.HasFlag(Orbwalker.ActiveModes.Combo))
+            if (!(hedefQandE is AIHeroClient) || hedefQandE.IsZombie || hedefQandE.IsPhysicalImmune || hedefQandE.IsInvulnerable || !hedefQandE.IsEnemy || hedefQandE.IsDead) return;
+            var qandE = hedefQandE as AIHeroClient;
+            if (qandE == null) return;
+            if (_combo["q"].Cast<CheckBox>().CurrentValue && _combo["AfterAaQ"].Cast<CheckBox>().CurrentValue && _q.IsReady())
+            { _q.Cast(qandE); }     
+            if (!_combo["e"].Cast<CheckBox>().CurrentValue || !_combo["AfterAaE"].Cast<CheckBox>().CurrentValue || !_e.IsReady()) return;          
+                _e.Cast(qandE);         
+        }
         private static void Combo()
         {         
-            if (_combo["e"].Cast<CheckBox>().CurrentValue && _e.IsReady() && !BuffChampEnemy)
+            if (_combo["e"].Cast<CheckBox>().CurrentValue && _e.IsReady() && !_combo["AfterAaE"].Cast<CheckBox>().CurrentValue && !BuffChampEnemy)
             {
                 var prophecyE = EntityManager.Heroes.Enemies.Where(x => x.IsValidTarget(_e.Range) && !SpellBuff(x) && !SpellShield(x));
                 var hedefE = TargetSelector.GetTarget(prophecyE, DamageType.Physical);
@@ -276,9 +291,9 @@ namespace FrOnDaL_Caitlyn
                     _w.Cast(normalprophecyW);
                 }
             }
-            if (!_combo["q"].Cast<CheckBox>().CurrentValue || !_q.IsReady() || BuffChampEnemy) return;
+            if (!_combo["q"].Cast<CheckBox>().CurrentValue || !_q.IsReady() || BuffChampEnemy || _combo["AfterAaQ"].Cast<CheckBox>().CurrentValue) return;
             {
-                if (EntityManager.Heroes.Enemies.Any(x => x.IsValidTarget() && Caitlyn.IsInRange(x, Aa)))return;
+                if (EntityManager.Heroes.Enemies.Any(x => x.IsValidTarget() && Caitlyn.IsInRange(x, Aa))) return;
                 {
                     var prophecyQ = EntityManager.Heroes.Enemies.Where(x => x.IsValidTarget(_q.Range) && !SpellBuff(x) && !SpellShield(x));
                     var hedefQ = TargetSelector.GetTarget(prophecyQ, DamageType.Physical);
