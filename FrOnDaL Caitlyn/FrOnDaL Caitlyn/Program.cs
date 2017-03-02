@@ -28,7 +28,7 @@ namespace FrOnDaL_Caitlyn
         protected static bool BuffChampEnemy => Caitlyn.Buffs.Any(x => x.Name == "caitlynheadshotrangecheck") && EntityManager.Heroes.Enemies.Any(x => x.IsValidTarget(1350) && IsYordle(x));
         protected static bool Item => Caitlyn.InventoryItems.Any(x => x.Id == ItemId.Rapid_Firecannon);
         protected static bool ItemStackedUp => Caitlyn.Buffs.Any(x => Item && x.Name.ToLowerInvariant() == "itemstatikshankcharge" && x.Count == 100);
-        protected static float Aa => ItemStackedUp ? 900 : 600;
+        protected static float Aa => ItemStackedUp ? 900 : 300;
         private static bool SpellShield(Obj_AI_Base shield)
         {
             return shield.HasBuffOfType(BuffType.SpellShield) || shield.HasBuffOfType(BuffType.SpellImmunity);
@@ -85,8 +85,10 @@ namespace FrOnDaL_Caitlyn
             _e = new Spell.Skillshot(SpellSlot.E, 800, SkillShotType.Linear, 150, 1600, 80) { AllowedCollisionCount = 0 };
             _r = new Spell.Targeted(SpellSlot.R, 2000);
             Drawing.OnEndScene += HasarGostergesi;
+            Interrupter.OnInterruptableSpell += DangerousSpellsWInterupt;
             Obj_AI_Base.OnProcessSpellCast += SpellCastWe;
             Obj_AI_Base.OnProcessSpellCast += AutoItem;
+            Gapcloser.OnGapcloser += EandWAntiGapCloser;
             Game.OnTick += CaitlynActive;           
             Drawing.OnDraw += SpellDraw;         
             _lvl = Caitlyn.Spellbook;
@@ -104,7 +106,12 @@ namespace FrOnDaL_Caitlyn
             _combo.Add("q", new CheckBox("Use Q"));
             _combo.AddSeparator(5);
             _combo.AddLabel("Use Combo W (On/Off)");
-            _combo.Add("w", new CheckBox("Use W"));          
+            _combo.Add("w", new CheckBox("Use W"));
+            _combo.AddSeparator(3);
+            _combo.Add("wlogic", new ComboBox("W Logic ", 0, "FrOnDaL", "FrOnDaL2", "Normal"));
+            _combo.AddSeparator(3);
+            _combo.Add("maxtrap", new Slider("Maximum trap accumulation", 2, 1, 5));
+            _combo.AddSeparator(3);
             _combo.Add("WHitChance", new Slider("W hitchance percent : {0}", 85));
             _combo.AddSeparator(5);
             _combo.AddLabel("Use E");
@@ -139,6 +146,13 @@ namespace FrOnDaL_Caitlyn
             _misc.AddLabel("Auto Blade of the Ruined King and Bilgewater Cutlass");
             _misc.Add("botrk", new CheckBox("Use BotRk (On/Off)"));
             _misc.Add("autoCutlass", new CheckBox("Use Bilgewater Cutlass (On/Off)"));        
+            _drawings.AddSeparator(5);
+            _misc.AddLabel("Anti Gap Closer E+W (On/Off)");
+            _misc.Add("egap", new CheckBox("Use E Anti Gap Closer (On/Off)"));
+            _misc.Add("wgap", new CheckBox("Use W Anti Gap Closer (On/Off)"));
+            _drawings.AddSeparator(5);
+            _misc.AddLabel("Interrupt Dangerous Spells (On/Off)");
+            _misc.Add("interruptW", new CheckBox("Use W Interrupt (On/Off)"));
             _drawings.AddSeparator(5);
             _misc.AddLabel("Auto R Kill Steal");
             _misc.Add("autoR", new CheckBox("Auto R (On/Off)"));
@@ -202,7 +216,7 @@ namespace FrOnDaL_Caitlyn
             }
         }
         private static void Combo()
-        {          
+        {         
             if (_combo["e"].Cast<CheckBox>().CurrentValue && _e.IsReady() && !BuffChampEnemy)
             {
                 var prophecyE = EntityManager.Heroes.Enemies.Where(x => x.IsValidTarget(_e.Range) && !SpellBuff(x) && !SpellShield(x));
@@ -215,18 +229,51 @@ namespace FrOnDaL_Caitlyn
                             _e.Cast(_e.GetPrediction(hedefE).CastPosition);
                     }
                 }
-            }                 
-            if (_combo["w"].Cast<CheckBox>().CurrentValue && _w.IsReady() )
+            }   
+            if (_combo["w"].Cast<CheckBox>().CurrentValue && _w.IsReady() && _combo["wlogic"].Cast<ComboBox>().CurrentValue == 0)
             {
-                var prophecyW = EntityManager.Heroes.Enemies.Where(x => x.IsValidTarget(650) && !SpellBuff(x) && !SpellShield(x));             
+                var prophecyW = EntityManager.Heroes.Enemies.Where(x => x.IsValidTarget(700) && !SpellBuff(x) && !SpellShield(x));
                 var hedefW = TargetSelector.GetTarget(prophecyW, DamageType.Physical);
                 if (hedefW != null)
                 {
                     var predW = _w.GetPrediction(hedefW);
-                    if ((predW.HitChancePercent >= _combo["WHitChance"].Cast<Slider>().CurrentValue) && Yordletrap(predW.CastPosition))
+                    if ((predW.HitChancePercent >= _combo["WHitChance"].Cast<Slider>().CurrentValue) && (predW.CastPosition.Distance(hedefW) > 50) && Yordletrap(predW.CastPosition) && (_w.Handle.Ammo >= _combo["maxtrap"].Cast<Slider>().CurrentValue))
                     {
-                        _w.Cast(predW.CastPosition);return;
+                        _w.Cast(predW.CastPosition);
                     }
+                    else
+                    {
+                        var hedefW2 = TargetSelector.GetTarget(_w.Range, DamageType.Physical);
+                        var prophecyW2 = Prediction.Position.PredictUnitPosition(hedefW2, 500).To3D();
+                        var predW2 = _w.GetPrediction(hedefW2);
+                        if (hedefW2 != null && _w.IsInRange(prophecyW2) && (predW2.HitChancePercent >= _combo["WHitChance"].Cast<Slider>().CurrentValue) && (_w.Handle.Ammo >= _combo["maxtrap"].Cast<Slider>().CurrentValue))
+                        {
+                            _w.Cast(prophecyW2); return;
+                        }
+                    }
+                }
+            }
+            if (_combo["w"].Cast<CheckBox>().CurrentValue && _w.IsReady() && _combo["wlogic"].Cast<ComboBox>().CurrentValue == 1)
+            {
+                var prophecyW = EntityManager.Heroes.Enemies.Where(x => x.IsValidTarget(700) && !SpellBuff(x) && !SpellShield(x));             
+                var hedefW = TargetSelector.GetTarget(prophecyW, DamageType.Physical);
+                if (hedefW != null)
+                {
+                    var predW = _w.GetPrediction(hedefW);
+                    if ((predW.HitChancePercent >= _combo["WHitChance"].Cast<Slider>().CurrentValue) && (predW.CastPosition.Distance(hedefW) > 50) && Yordletrap(predW.CastPosition) && (_w.Handle.Ammo >= _combo["maxtrap"].Cast<Slider>().CurrentValue))
+                    {
+                        _w.Cast(predW.CastPosition); return;
+                    }
+                }
+            }      
+            if (_combo["w"].Cast<CheckBox>().CurrentValue && _w.IsReady() && _combo["wlogic"].Cast<ComboBox>().CurrentValue == 2)
+            {
+                var normalW = TargetSelector.GetTarget(_w.Range, DamageType.Physical);
+                var normalprophecyW = Prediction.Position.PredictUnitPosition(normalW, 500).To3D();
+                var normalpredW = _w.GetPrediction(normalW);
+                if (normalW != null  && _w.IsInRange(normalprophecyW) && (normalpredW.HitChancePercent >= _combo["WHitChance"].Cast<Slider>().CurrentValue) && (_w.Handle.Ammo >= _combo["maxtrap"].Cast<Slider>().CurrentValue))
+                {
+                    _w.Cast(normalprophecyW);
                 }
             }
             if (!_combo["q"].Cast<CheckBox>().CurrentValue || !_q.IsReady() || BuffChampEnemy) return;
@@ -235,8 +282,8 @@ namespace FrOnDaL_Caitlyn
                 {
                     var prophecyQ = EntityManager.Heroes.Enemies.Where(x => x.IsValidTarget(_q.Range) && !SpellBuff(x) && !SpellShield(x));
                     var hedefQ = TargetSelector.GetTarget(prophecyQ, DamageType.Physical);
-                    if (hedefQ == null) return; var hit = 80;
-                    if (((hedefQ.HealthPercent <= 25) && (Caitlyn.ManaPercent >= 55)) || (Caitlyn.ManaPercent >= 85)) {hit = 65;}
+                    if (hedefQ == null) return; var hit = 90;
+                    if (((hedefQ.HealthPercent <= 25) && (Caitlyn.ManaPercent >= 55)) || (Caitlyn.ManaPercent >= 85)) {hit = 75;}
                     _q.CastMinimumHitchance(hedefQ, hit);
                 }
             }
@@ -262,6 +309,19 @@ namespace FrOnDaL_Caitlyn
             {
                 _r.Cast(autoKillTarget);
             }
+        }
+        public static void DangerousSpellsWInterupt(Obj_AI_Base w,Interrupter.InterruptableSpellEventArgs winterupt)
+        {
+            if (!w.IsEnemy && !_misc["interruptW"].Cast<CheckBox>().CurrentValue) return;
+            if (_w.IsReady() && winterupt.DangerLevel == DangerLevel.High)
+            { _w.Cast(w.Position); }
+        }
+        private static void EandWAntiGapCloser(AIHeroClient eAndw, Gapcloser.GapcloserEventArgs eAndwGap)
+        {
+            if (_misc["egap"].Cast<CheckBox>().CurrentValue && eAndw.IsEnemy && eAndw.IsValidTarget(_e.Range) && eAndwGap.End.Distance(Caitlyn) <= 250)
+            { _e.Cast(eAndwGap.End); }
+            if (_misc["wgap"].Cast<CheckBox>().CurrentValue && eAndw.IsEnemy && eAndw.IsValidTarget(_w.Range) && eAndwGap.End.Distance(Caitlyn) <= 250)
+            { _w.Cast(eAndwGap.End); }
         }
         private static void HasarGostergesi(EventArgs args)
         {
