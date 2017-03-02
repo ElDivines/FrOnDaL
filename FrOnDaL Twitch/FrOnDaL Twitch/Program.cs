@@ -56,6 +56,7 @@ namespace FrOnDaL_Twitch
             if (Twitch.Hero != Champion.Twitch) return;
             Game.OnTick += TwitchActive;
             Game.OnUpdate += AutoSmite;
+            Game.OnNotify += QafterKill;
             Drawing.OnEndScene += HasarGostergesi;
             Drawing.OnEndScene += HasarGostergesiJungle;
             _lvl = Twitch.Spellbook;                
@@ -80,6 +81,8 @@ namespace FrOnDaL_Twitch
             _combo.AddLabel("Use Combo W (On/Off)" + "                                 " + "Auto E Kill Steal");
             _combo.Add("w", new CheckBox("Use W"));
             _combo.Add("autoE", new CheckBox("Auto E"));
+            _combo.AddLabel("Use Q After Kill (On/Off)");
+            _combo.Add("Qafterkill", new CheckBox("Use Q After Kill"));
             _laneclear = _main.AddSubMenu("Laneclear");
             _laneclear.AddGroupLabel("LaneClear mode settings for Twitch");
             _laneclear.Add("LmanaP", new Slider("LaneClear Mana Control Min mana percentage ({0}%) to use W and E", 50, 1));
@@ -252,6 +255,13 @@ namespace FrOnDaL_Twitch
                 {_e.Cast();}
             }
         }
+        private static void QafterKill(GameNotifyEventArgs afterKill)
+        {
+            if (_q.IsReady() && _combo["Qafterkill"].Cast<CheckBox>().CurrentValue && (afterKill.NetworkId == Twitch.NetworkId) && (afterKill.EventId == GameEventId.OnChampionKill))
+            {               
+                Core.DelayAction(() => { if (EntityManager.Heroes.Enemies.Any(x => x.IsValidTarget(1500))) { _q.Cast(); } }, 150);
+            }
+        }
         public static int StacksPassive(Obj_AI_Base obj)
         {        
             if (obj.IsDead || !obj.IsEnemy || ((obj.Type != GameObjectType.AIHeroClient) && (obj.Type != GameObjectType.obj_AI_Minion)))
@@ -292,6 +302,7 @@ namespace FrOnDaL_Twitch
                 switch (enemy.Hero)
                 {
                     case Champion.Annie: _dikey = -1.8f; _yatay = -9; break;
+                    case Champion.Corki: _dikey = -1.8f; _yatay = -9; break;
                     case Champion.Jhin: _dikey = -4.8f; _yatay = -9; break;
                     case Champion.Darius: _dikey = 9.8f; _yatay = -2; break;
                     case Champion.XinZhao: _dikey = 10.8f; _yatay = 2; break;
@@ -310,13 +321,19 @@ namespace FrOnDaL_Twitch
         private static void HasarGostergesiJungle(EventArgs args)
         {
             foreach (var monstersDamage in EntityManager.MinionsAndMonsters.Monsters.Where(x => Twitch.Distance(x) < 1000 && !x.BaseSkinName.ToLower().Contains("mini") && !x.BaseSkinName.Contains("Crab") && !x.BaseSkinName.Contains("Dragon") && !x.BaseSkinName.Contains("Baron") && !x.IsDead && x.IsHPBarRendered && x.VisibleOnScreen))
-            {              
+            {
+               /* if (monstersDamage.BaseSkinName.Contains("Dragon"))
+                {_genislikj = 142; _yukseklikj = 9.82f;_dikeyj = 9; _yatayj = -3;}*/
                 if (monstersDamage.BaseSkinName.Contains("RiftHerald"))
-                {_genislikj = 142; _yukseklikj = 9.92f;_dikeyj = 8; _yatayj = -3;}    
+                {_genislikj = 142; _yukseklikj = 9.92f;_dikeyj = 8; _yatayj = -3;}
+                /*if (monstersDamage.BaseSkinName.Contains("Baron"))
+                {_genislikj = 192; _yukseklikj = 13.82f;_dikeyj = 9; _yatayj = -28;}*/
                 if (monstersDamage.BaseSkinName.Contains("Blue") || monstersDamage.BaseSkinName.Contains("Red"))
                 {_genislikj = 142; _yukseklikj = 9.82f;_dikeyj = 7; _yatayj = -3;}
                 if (monstersDamage.BaseSkinName.Contains("Gromp") || monstersDamage.BaseSkinName.Contains("Razorbeak") || monstersDamage.BaseSkinName.Contains("Krug") || monstersDamage.BaseSkinName.Contains("Murkwolf"))
-                {_genislikj = 91; _yukseklikj = 3.999f;_dikeyj = 7.999f; _yatayj = 22;}           
+                {_genislikj = 91; _yukseklikj = 3.999f;_dikeyj = 7.999f; _yatayj = 22;}
+               /* if (monstersDamage.BaseSkinName.Contains("Crab"))
+                {_genislikj = 59; _yukseklikj = 3.999f;_dikeyj = 21.999f; _yatayj = 38;}*/
                 if (!_drawings["smiteDamage"].Cast<CheckBox>().CurrentValue) continue;
                 var smiteDamage = Twitch.GetSummonerSpellDamage(monstersDamage, DamageLibrary.SummonerSpells.Smite);
                 var hasarXj = (monstersDamage.TotalShieldHealth() - smiteDamage > 0 ? monstersDamage.TotalShieldHealth() - smiteDamage : 0) / (monstersDamage.MaxHealth + monstersDamage.AllShield + monstersDamage.AttackShield + monstersDamage.MagicShield);
