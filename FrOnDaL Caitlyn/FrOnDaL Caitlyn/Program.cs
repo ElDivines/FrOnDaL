@@ -126,13 +126,13 @@ namespace FrOnDaL_Caitlyn
             _combo.AddSeparator(5);
             _laneclear = _main.AddSubMenu("Laneclear");
             _laneclear.AddGroupLabel("LaneClear mode settings for Caitlyn");
-            _laneclear.Add("LmanaP", new Slider("LaneClear Mana Control Min mana percentage ({0}%) to use W and E", 50, 1));
+            _laneclear.Add("LmanaP", new Slider("LaneClear Mana Control Min mana percentage ({0}%) to use Q", 50, 1));
             _laneclear.AddSeparator(5);
             _laneclear.Add("q", new CheckBox("Use Q", false));
             _laneclear.Add("Qhit", new Slider("Hit {0} Units Enemy and Minions", 4, 1, 6));
             _jungleclear = _main.AddSubMenu("Jungleclear");
             _jungleclear.AddGroupLabel("JungleClear mode settings for Caitlyn");
-            _jungleclear.Add("JmanaP", new Slider("Jungle Clear Mana Control Min mana percentage ({0}%) to use W and E", 30, 1));
+            _jungleclear.Add("JmanaP", new Slider("Jungle Clear Mana Control Min mana percentage ({0}%) to use Q and E", 30, 1));
             _jungleclear.AddLabel("Use Q Jung" + "                                                     " + "Use E Jung");
             _jungleclear.Add("q", new CheckBox("Use Q"));
             _jungleclear.Add("e", new CheckBox("Use E"));
