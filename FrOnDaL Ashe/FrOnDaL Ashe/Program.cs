@@ -185,7 +185,7 @@ namespace FrOnDaL_Ashe
         }
         private static void HarrasW()
         {
-            if (!_w.IsReady() || !_harrass["w"].Cast<CheckBox>().CurrentValue || !(Ashe.ManaPercent >= _harrass["HmanaP"].Cast<Slider>().CurrentValue)) return;
+            if (!_w.IsReady() || !_harrass["w"].Cast<CheckBox>().CurrentValue || !(Ashe.ManaPercent >= _harrass["HmanaP"].Cast<Slider>().CurrentValue) || Ashe.IsUnderEnemyturret()) return;
             var harrasWtarget = TargetSelector.GetTarget(_w.Range, DamageType.Physical);
             if (harrasWtarget == null) return;
             var harrasWprophecy = HarrasWPred(harrasWtarget);
@@ -210,7 +210,6 @@ namespace FrOnDaL_Ashe
         }
         private static void Combo()
         {
-
             if (_q.IsReady() && _combo["q"].Cast<CheckBox>().CurrentValue && EntityManager.Heroes.Enemies.Any(x => x.IsValidTarget(Ashe.GetAutoAttackRange() - 50) && !IsPreAa))            
             { _q.Cast(); }
 
@@ -265,6 +264,5 @@ namespace FrOnDaL_Ashe
             if (prophecyR.HitChance < HitChance.High) return;
             _r.Cast(prophecyR.CastPosition);
         }
-
     }
 }
