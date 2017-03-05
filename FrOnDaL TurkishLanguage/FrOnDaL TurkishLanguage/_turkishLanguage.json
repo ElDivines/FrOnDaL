@@ -1548,7 +1548,8 @@
 				"74": "Draw Burst Range",
 				"75": "Draw Target",
 				"76": "Draw Combo Damage Fill",
-				"77": "Draw Flee Spots"				
+				"77": "Draw Flee Spots",
+				"78": "The Shy Combo"
 			},
 			"Turkish": {
 				"0": "Riven",
@@ -1628,7 +1629,8 @@
 				"74": "Atılma menzilini göster",
 				"75": "Hedefimi göster",
 				"76": "Hasarımı göster",
-				"77": "Kaçış noktalarını göster"	
+				"77": "Kaçış noktalarını göster",
+				"78": "Denetimli (Çekimser) Kombo"
 
 			}		
 		}
