@@ -97,7 +97,7 @@ namespace FrOnDaL_Ashe
             _combo.Add("WHitChance", new Slider("W hitchance percent : {0}"));
             _combo.AddSeparator(5);
             _combo.AddLabel("Use R");
-            _combo.Add("r", new KeyBind("Use R Key", false, KeyBind.BindTypes.HoldActive, 'T'));
+            _combo.Add("r", new KeyBind("Use R Key", false, KeyBind.BindTypes.HoldActive, 'T')); 
             _combo.Add("RHitChance", new Slider("R hitchance percent : {0}"));
             _combo.Add("RMinRange", new Slider("R minimum range to cast", 350, 100, 700));        
             _combo.Add("RMaxRange", new Slider("R maximum range to cast", 1500, 700, 2000));
@@ -202,7 +202,7 @@ namespace FrOnDaL_Ashe
             var targetManuelR = TargetSelector.GetTarget(_combo["RMaxRange"].Cast<Slider>().CurrentValue, DamageType.Physical);
             if (targetManuelR == null || SpellShield(targetManuelR) || SpellBuff(targetManuelR) || !(targetManuelR.Distance(Ashe) > _combo["RMinRange"].Cast<Slider>().CurrentValue)) return;
             var prophecyR = Prediction.Manager.GetPrediction(new Prediction.Manager.PredictionInput {
-                CollisionTypes = new HashSet<CollisionType> { Prediction.Manager.PredictionSelected == "Prediction" ? CollisionType.AiHeroClient : CollisionType.ObjAiMinion },
+                CollisionTypes = new HashSet<CollisionType> {  CollisionType.AiHeroClient, CollisionType.ObjAiMinion, CollisionType.YasuoWall },
                 Delay = .25f, From = Ashe.Position, Radius = 120, Range = _combo["RMaxRange"].Cast<Slider>().CurrentValue, RangeCheckFrom = Ashe.Position,
                 Speed = _r.Speed, Target = targetManuelR, Type = SkillShotType.Linear });
             if (prophecyR.HitChancePercent >= _combo["RHitChance"].Cast<Slider>().CurrentValue)
@@ -263,8 +263,8 @@ namespace FrOnDaL_Ashe
         {
             if (!_r.IsReady() || _misc["interruptR"].Cast<CheckBox>().CurrentValue || (args.DangerLevel != DangerLevel.Medium && args.DangerLevel != DangerLevel.High) || !(Ashe.Mana > 200) || !sender.IsValidTarget(3000)) return;         
             var prophecyR = Prediction.Manager.GetPrediction(new Prediction.Manager.PredictionInput{
-                CollisionTypes = new HashSet<CollisionType> { Prediction.Manager.PredictionSelected == "Prediction" ? CollisionType.AiHeroClient : CollisionType.ObjAiMinion },
-                Delay = .25f, From = Ashe.Position, Radius = 130, Range = 3000, RangeCheckFrom = Ashe.Position, Speed = _r.Speed, Target = sender, Type = SkillShotType.Linear });
+                CollisionTypes = new HashSet<CollisionType> { CollisionType.AiHeroClient, CollisionType.ObjAiMinion, CollisionType.YasuoWall },
+                Delay = .25f, From = Ashe.Position, Radius = 140, Range = 2500, RangeCheckFrom = Ashe.Position, Speed = _r.Speed, Target = sender, Type = SkillShotType.Linear });
             if (prophecyR.HitChance < HitChance.High) return;
             _r.Cast(prophecyR.CastPosition);
         }
@@ -272,8 +272,8 @@ namespace FrOnDaL_Ashe
         {
             if (!_misc["Rgap"].Cast<CheckBox>().CurrentValue || !sender.IsEnemy || !sender.IsValidTarget(1000) || !(Ashe.Mana > 200) || !(rGap.End.Distance(Ashe) <= 250)) return;
             var prophecyR = Prediction.Manager.GetPrediction(new Prediction.Manager.PredictionInput {
-                CollisionTypes = new HashSet<CollisionType> { Prediction.Manager.PredictionSelected == "Prediction" ? CollisionType.AiHeroClient : CollisionType.ObjAiMinion },
-                Delay = .25f, From = Ashe.Position, Radius = 130, Range = 3000, RangeCheckFrom = Ashe.Position, Speed = _r.Speed, Target = sender, Type = SkillShotType.Linear });
+                CollisionTypes = new HashSet<CollisionType> { CollisionType.AiHeroClient, CollisionType.ObjAiMinion},
+                Delay = .25f, From = Ashe.Position, Radius = 140, Range = 2500, RangeCheckFrom = Ashe.Position, Speed = _r.Speed, Target = sender, Type = SkillShotType.Linear });
             if (prophecyR.HitChance < HitChance.High) return;
             _r.Cast(prophecyR.CastPosition);
         }

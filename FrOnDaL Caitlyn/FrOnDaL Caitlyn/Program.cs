@@ -10,6 +10,9 @@ using EloBuddy.SDK.Enumerations;
 using System.Collections.Generic;
 using Color = System.Drawing.Color;
 
+using EloBuddy.SDK.Spells;
+
+
 namespace FrOnDaL_Caitlyn
 {
     internal class Program
@@ -106,6 +109,10 @@ namespace FrOnDaL_Caitlyn
             _combo.AddLabel("Use Combo Q (On/Off)");
             _combo.Add("q", new CheckBox("Use Q"));
             _combo.Add("AfterAaQ", new CheckBox("Use Q After AA", false));
+            _combo.AddSeparator(3);
+            _combo.Add("qlogic", new ComboBox("Q Logic ", 1, "FrOnDaL", "Normal"));
+            _combo.AddSeparator(3);
+            _combo.Add("qHitChance", new Slider("Q hitchance percent : {0}", 60));
             _combo.AddSeparator(5);
             _combo.AddLabel("Use Combo W (On/Off)");
             _combo.Add("w", new CheckBox("Use W"));
@@ -293,13 +300,31 @@ namespace FrOnDaL_Caitlyn
             }
             if (!_combo["q"].Cast<CheckBox>().CurrentValue || !_q.IsReady() || BuffChampEnemy || _combo["AfterAaQ"].Cast<CheckBox>().CurrentValue) return;
             {
-                if (EntityManager.Heroes.Enemies.Any(x => x.IsValidTarget() && Caitlyn.IsInRange(x, Aa))) return;
+                  var qProphecy = EntityManager.Heroes.Enemies.Where(x => x.IsValidTarget(_q.Range) && !SpellShield(x) && !SpellBuff(x)).ToList();
+                var targetQ = TargetSelector.GetTarget(qProphecy, DamageType.Physical);
+                if (targetQ == null) return;             
+                if (_combo["qlogic"].Cast<ComboBox>().CurrentValue == 0)
                 {
-                    var prophecyQ = EntityManager.Heroes.Enemies.Where(x => x.IsValidTarget(_q.Range) && !SpellBuff(x) && !SpellShield(x));
-                    var hedefQ = TargetSelector.GetTarget(prophecyQ, DamageType.Physical);
-                    if (hedefQ == null) return; var hit = 90;
-                    if (((hedefQ.HealthPercent <= 25) && (Caitlyn.ManaPercent >= 55)) || (Caitlyn.ManaPercent >= 85)) {hit = 75;}
-                    _q.CastMinimumHitchance(hedefQ, hit);
+                    var qPrediction = Prediction.Manager.GetPrediction(new Prediction.Manager.PredictionInput
+                    {
+                        CollisionTypes = new HashSet<CollisionType> { CollisionType.YasuoWall },
+                        Delay = 0,
+                        From = Caitlyn.Position,
+                        Radius = 70,
+                        Range = _q.Range,
+                        RangeCheckFrom = Caitlyn.Position,
+                        Speed = _q.Speed,
+                        Target = targetQ,
+                        Type = SkillShotType.Linear
+                    });
+                    if (qPrediction.HitChancePercent >= _combo["qHitChance"].Cast<Slider>().CurrentValue)
+                    { _q.Cast(qPrediction.CastPosition); }
+                }
+                else
+                {
+                    var qPrediction = _q.GetPrediction(targetQ);
+                    if (qPrediction.HitChancePercent >= _combo["qHitChance"].Cast<Slider>().CurrentValue)
+                    { _q.Cast(qPrediction.CastPosition); }
                 }
             }
         }

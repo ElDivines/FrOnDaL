@@ -80,6 +80,8 @@ namespace FrOnDaL_Varus
             _combo.AddLabel("Use Combo Q (On/Off)");
             _combo.Add("q", new CheckBox("Use Q"));
             _combo.AddSeparator(5);
+            _combo.Add("qlogic", new ComboBox("Q Logic ", 0, "Normal", "FrOnDaL"));
+            _combo.AddSeparator(5);
             _combo.AddLabel("Use Combo E (On/Off)" + "                                 " + "3 W stack use E (On/Off)");
             _combo.Add("e", new CheckBox("Use E"));
             _combo.Add("stackWuseE", new CheckBox("Use E only to 3 W stack"));
@@ -88,6 +90,8 @@ namespace FrOnDaL_Varus
             _combo.AddSeparator(5);
             _combo.AddLabel("Use Manual R Key Setting");
             _combo.Add("RKey", new KeyBind("Manual R keybind", false, KeyBind.BindTypes.HoldActive, 'T'));
+            _combo.AddSeparator(5);
+            _combo.Add("rlogic", new ComboBox("R Logic ", 0, "Normal", "FrOnDaL"));
             _combo.AddSeparator(5);
             _combo.Add("RHit", new Slider("Manual R Hits ", 1, 1, 5));
             _combo.AddSeparator(5);
@@ -215,11 +219,11 @@ namespace FrOnDaL_Varus
         private static void ManuelR()
         {
             if (!_r.IsReady() || !_combo["RKey"].Cast<KeyBind>().CurrentValue) return;
-            var hedefR = TargetSelector.GetTarget(_r.Range - 150, DamageType.Physical);
+            var hedefR = TargetSelector.GetTarget(_r.Range - 100, DamageType.Physical);
             var rHit = EntityManager.Heroes.Enemies.Where(x => x.Distance(hedefR) <= 450f && !SpellShield(x) && !SpellBuff(x)).ToList();
             if (hedefR == null) return;
-            if (Prediction.Manager.PredictionSelected == "Prediction") { var prophecyR = Prediction.Manager.GetPrediction(new Prediction.Manager.PredictionInput { CollisionTypes = new HashSet<CollisionType> { CollisionType.YasuoWall, CollisionType.AiHeroClient },
-                Delay = .25f, From = Varus.Position, Radius = _r.Width, Range = _r.Range - 150, RangeCheckFrom = Varus.Position, Speed = _r.Speed, Target = hedefR, Type = SkillShotType.Linear });
+            if (_combo["rlogic"].Cast<ComboBox>().CurrentValue == 1) { var prophecyR = Prediction.Manager.GetPrediction(new Prediction.Manager.PredictionInput { CollisionTypes = new HashSet<CollisionType> { CollisionType.YasuoWall, CollisionType.AiHeroClient },
+                Delay = .25f, From = Varus.Position, Radius = _r.Width, Range = _r.Range - 100, RangeCheckFrom = Varus.Position, Speed = _r.Speed, Target = hedefR, Type = SkillShotType.Linear });
                 if ((prophecyR.HitChancePercent >= _combo["RHitChance"].Cast<Slider>().CurrentValue) && (rHit.Count >= _combo["RHit"].Cast<Slider>().CurrentValue))                   
                 {
                     _r.Cast(prophecyR.CastPosition);
@@ -250,7 +254,7 @@ namespace FrOnDaL_Varus
                 if (targetQ != null)
                 {                  
                     if ((Varus.CountEnemyChampionsInRange(Varus.GetAutoAttackRange()) == 0) && !_q.IsFullyCharged) return;
-                    if (Prediction.Manager.PredictionSelected == "Prediction") { var qPrediction = Prediction.Manager.GetPrediction(new Prediction.Manager.PredictionInput {
+                    if (_combo["qlogic"].Cast<ComboBox>().CurrentValue == 1) { var qPrediction = Prediction.Manager.GetPrediction(new Prediction.Manager.PredictionInput {
                         CollisionTypes = new HashSet<CollisionType> { CollisionType.YasuoWall }, Delay = 0, From = Varus.Position, Radius = 70, Range = _q.Range,
                         RangeCheckFrom = Varus.Position, Speed = _q.Speed, Target = targetQ, Type = SkillShotType.Linear });
                         if (qPrediction.HitChancePercent >= 60)
@@ -286,7 +290,7 @@ namespace FrOnDaL_Varus
         {
             if (!_misc["Rgap"].Cast<CheckBox>().CurrentValue || !qAndr.IsEnemy || !qAndr.IsValidTarget(1000) || !(Varus.Mana > 200) || !(qAndrGap.End.Distance(Varus) <= 250)) return;
             var prophecyR = Prediction.Manager.GetPrediction(new Prediction.Manager.PredictionInput {
-                CollisionTypes = new HashSet<CollisionType> { Prediction.Manager.PredictionSelected == "Prediction" ? CollisionType.AiHeroClient : CollisionType.ObjAiMinion },
+                CollisionTypes = new HashSet<CollisionType> { CollisionType.AiHeroClient, CollisionType.ObjAiMinion },
                 Delay = .25f, From = Varus.Position, Radius = 130, Range = 1250, RangeCheckFrom = Varus.Position, Speed = _r.Speed, Target = qAndr, Type = SkillShotType.Linear });
             if (prophecyR.HitChance < HitChance.High) return;
             _r.Cast(prophecyR.CastPosition);
