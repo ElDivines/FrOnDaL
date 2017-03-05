@@ -92,7 +92,9 @@ namespace FrOnDaL_Ashe
             _combo.AddGroupLabel("Combo mode settings for Ashe");
             _combo.AddLabel("Use Combo Q (On/Off)"+"                                 "+ "Use Combo W (On/Off)");
             _combo.Add("q", new CheckBox("Use Q"));
-            _combo.Add("w", new CheckBox("Use W"));   
+            _combo.Add("w", new CheckBox("Use W"));
+            _combo.AddSeparator(5);
+            _combo.Add("WHitChance", new Slider("W hitchance percent : {0}"));
             _combo.AddSeparator(5);
             _combo.AddLabel("Use R");
             _combo.Add("r", new KeyBind("Use R Key", false, KeyBind.BindTypes.HoldActive, 'T'));
@@ -185,7 +187,7 @@ namespace FrOnDaL_Ashe
         }
         private static void HarrasW()
         {
-            if (!_w.IsReady() || !_harrass["w"].Cast<CheckBox>().CurrentValue || !(Ashe.ManaPercent >= _harrass["HmanaP"].Cast<Slider>().CurrentValue) || Ashe.IsUnderEnemyturret()) return;
+            if (!_w.IsReady() || !_harrass["w"].Cast<CheckBox>().CurrentValue || !(Ashe.ManaPercent >= _harrass["HmanaP"].Cast<Slider>().CurrentValue) || Orbwalker.ActiveModesFlags.Equals(Orbwalker.ActiveModes.Combo) || Ashe.IsUnderEnemyturret()) return;
             var harrasWtarget = TargetSelector.GetTarget(_w.Range, DamageType.Physical);
             if (harrasWtarget == null) return;
             var harrasWprophecy = HarrasWPred(harrasWtarget);
@@ -208,6 +210,17 @@ namespace FrOnDaL_Ashe
                 _r.Cast(prophecyR.CastPosition);
             }
         }
+        public static PredictionResult ComboWPred(Obj_AI_Base comW)
+        {
+            var comboconeW = new Geometry.Polygon.Sector(Ashe.Position, Game.CursorPos, (float)(Math.PI / 180 * 40), 1250, 9).Points.ToArray();
+            for (var x = 1; x < 10; x++)
+            {
+                var comboprophecyW = Prediction.Position.PredictLinearMissile(comW, 1250, 20, 250, 1500, 0, Ashe.Position.Extend(comboconeW[x], 20).To3D());
+                if (comboprophecyW.CollisionObjects.Any() || (comboprophecyW.HitChancePercent < _combo["WHitChance"].Cast<Slider>().CurrentValue)) continue;
+                return comboprophecyW;
+            }
+            return null;
+        }
         private static void Combo()
         {
             if (_q.IsReady() && _combo["q"].Cast<CheckBox>().CurrentValue && EntityManager.Heroes.Enemies.Any(x => x.IsValidTarget(Ashe.GetAutoAttackRange() - 50) && !IsPreAa))            
@@ -215,12 +228,12 @@ namespace FrOnDaL_Ashe
 
             if (!_w.IsReady() || !_combo["w"].Cast<CheckBox>().CurrentValue) return;
             {
-                var prophecyW = EntityManager.Heroes.Enemies.Where( x => { if (!x.IsValidTarget(_w.Range)) return false; var wPred = HarrasWPred(x); if (wPred == null) return false; return !SpellShield(x) && wPred.HitChance >= HitChance.Medium; }).ToList();
+                var prophecyW = EntityManager.Heroes.Enemies.Where( x => { if (!x.IsValidTarget(_w.Range)) return false; var wPred = ComboWPred(x); if (wPred == null) return false; return !SpellShield(x) && (wPred.HitChancePercent >= _combo["WHitChance"].Cast<Slider>().CurrentValue); }).ToList();
                 if (!prophecyW.Any() || IsPreAa) return;
                 var targetW = TargetSelector.GetTarget(prophecyW, DamageType.Physical);
                 if (targetW == null) return;
-                var wPred2 = HarrasWPred(targetW);
-                if (wPred2 != null && wPred2.HitChance >= HitChance.Medium)
+                var wPred2 = ComboWPred(targetW);
+                if (wPred2 != null && wPred2.HitChancePercent >= _combo["WHitChance"].Cast<Slider>().CurrentValue)
                 { _w.Cast(wPred2.CastPosition); }               
             }
         }
