@@ -305,18 +305,8 @@ namespace FrOnDaL_Caitlyn
                 if (targetQ == null) return;             
                 if (_combo["qlogic"].Cast<ComboBox>().CurrentValue == 0)
                 {
-                    var qPrediction = Prediction.Manager.GetPrediction(new Prediction.Manager.PredictionInput
-                    {
-                        CollisionTypes = new HashSet<CollisionType> { CollisionType.YasuoWall },
-                        Delay = 0,
-                        From = Caitlyn.Position,
-                        Radius = 70,
-                        Range = _q.Range,
-                        RangeCheckFrom = Caitlyn.Position,
-                        Speed = _q.Speed,
-                        Target = targetQ,
-                        Type = SkillShotType.Linear
-                    });
+                    var qPrediction = Prediction.Manager.GetPrediction(new Prediction.Manager.PredictionInput { CollisionTypes = new HashSet<CollisionType> { CollisionType.YasuoWall },
+                        Delay = 0, From = Caitlyn.Position, Radius = 70, Range = _q.Range, RangeCheckFrom = Caitlyn.Position, Speed = _q.Speed, Target = targetQ, Type = SkillShotType.Linear });
                     if (qPrediction.HitChancePercent >= _combo["qHitChance"].Cast<Slider>().CurrentValue)
                     { _q.Cast(qPrediction.CastPosition); }
                 }
