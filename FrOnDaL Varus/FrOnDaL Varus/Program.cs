@@ -95,7 +95,7 @@ namespace FrOnDaL_Varus
             _combo.AddSeparator(5);
             _combo.Add("RHit", new Slider("Manual R Hits ", 1, 1, 5));
             _combo.AddSeparator(5);
-            _combo.Add("RHitChance", new Slider("E hitchance percent : {0}", 60));
+            _combo.Add("RHitChance", new Slider("R hitchance percent : {0}", 60));
             _harras = _main.AddSubMenu("Harras");
             _harras.AddGroupLabel("Harras mode settings for Varus");
             _harras.AddLabel("Use harras Q key settings");
