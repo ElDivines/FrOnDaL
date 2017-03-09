@@ -21,7 +21,7 @@ namespace FrOnDaL_AurelionSol
         private static float _yukseklik = 9.82f;
         private static Spellbook _lvl;
         private static bool IsWActive => AurelionSol.HasBuff("AurelionSolWActive");
-        internal static double RDamage(Obj_AI_Base d)
+        private static double RDamage(Obj_AI_Base d)
         {
             var expiryDamage = AurelionSol.CalculateDamageOnUnit(d, DamageType.Magical, (float)new double[] { 200, 400, 600 }[_r.Level - 1] + 0.70f * AurelionSol.TotalMagicalDamage);
             return expiryDamage;
@@ -38,7 +38,7 @@ namespace FrOnDaL_AurelionSol
             if (buf.ChampionName != "Poppy") return buf.IsInvulnerable;
             return EntityManager.Heroes.Allies.Any(y => !y.IsMe && y.Buffs.Any(z => (z.Caster.NetworkId == buf.NetworkId) && z.IsValid && z.DisplayName.Equals("PoppyDITarget", StringComparison.CurrentCultureIgnoreCase))) || buf.IsInvulnerable;
         }
-        public static void OnLevelUpR(Obj_AI_Base sender, Obj_AI_BaseLevelUpEventArgs args) { if (AurelionSol.Level > 4) { _lvl.LevelSpell(SpellSlot.R); } }
+        private static void OnLevelUpR(Obj_AI_Base sender, Obj_AI_BaseLevelUpEventArgs args) { if (AurelionSol.Level > 4) { _lvl.LevelSpell(SpellSlot.R); } }
         private static void Main() { Loading.OnLoadingComplete += OnLoadingComplete; }
         private static void OnLoadingComplete(EventArgs args)
         {
