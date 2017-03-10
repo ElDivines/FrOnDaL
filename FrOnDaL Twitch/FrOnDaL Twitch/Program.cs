@@ -18,7 +18,7 @@ namespace FrOnDaL_Twitch
         private static readonly Item AutoGhostBlade = new Item(ItemId.Youmuus_Ghostblade);
         private static readonly Item AutoBotrk = new Item(ItemId.Blade_of_the_Ruined_King);
         private static readonly Item AutoCutlass = new Item(ItemId.Bilgewater_Cutlass);
-        private static Spell.Active _q, _e/*, _r*/;
+        private static Spell.Active _q, _e;
         private static Spell.Skillshot _w;
         private static Spell.Targeted _smite;
         private static float _dikeyj, _yatayj, _genislikj, _yukseklikj;
@@ -52,30 +52,34 @@ namespace FrOnDaL_Twitch
             }
         }
         private static void Main(){Loading.OnLoadingComplete += OnLoadingComplete;}            
-        private static void OnLoadingComplete(EventArgs args) {
+        private static void OnLoadingComplete(EventArgs args)
+        {
             if (Twitch.Hero != Champion.Twitch) return;
+
+            _lvl = Twitch.Spellbook;
             Game.OnTick += TwitchActive;
             Game.OnUpdate += AutoSmite;
             Game.OnNotify += QafterKill;
-            Drawing.OnEndScene += HasarGostergesi;
-            Drawing.OnEndScene += HasarGostergesiJungle;
-            _lvl = Twitch.Spellbook;                
-            Obj_AI_Base.OnLevelUp += OnLevelUpR;
-            Obj_AI_Base.OnBuffGain += AutoGhostBladeQ;         
             Drawing.OnDraw += SpellDraw;
-            Chat.Print("<font color='#00FFCC'><b>[FrOnDaL]</b></font> Twitch Successfully loaded.");            
+            Drawing.OnEndScene += HasarGostergesi;
+            Drawing.OnEndScene += HasarGostergesiJungle;                                
+            Obj_AI_Base.OnLevelUp += OnLevelUpR;
+            Obj_AI_Base.OnBuffGain += AutoGhostBladeQ;                                     
             Spellbook.OnCastSpell += auto_baseQ;
             Obj_AI_Base.OnProcessSpellCast += AutoItem;
+            Chat.Print("<font color='#00FFCC'><b>[FrOnDaL]</b></font> Twitch Successfully loaded.");
+
             _q = new Spell.Active(SpellSlot.Q);
             _w = new Spell.Skillshot(SpellSlot.W, 950, SkillShotType.Circular, 250, 1400, 280) { AllowedCollisionCount = -1, MinimumHitChance = HitChance.Medium };
             _e = new Spell.Active(SpellSlot.E, 1200);
-            //_r = new Spell.Active(SpellSlot.R);          
+                      
             _main = MainMenu.AddMenu("FrOnDaL Twitch", "index");
             _main.AddGroupLabel("Welcome FrOnDaL Twitch");
             _main.AddSeparator(5);
             _main.AddLabel("For faults please visit the 'elobuddy' forum and let me know.");
             _main.AddSeparator(5);
             _main.AddLabel("My good deeds -> FrOnDaL");
+
             _combo = _main.AddSubMenu("Combo");
             _combo.AddGroupLabel("Combo mode settings for Twitch");
             _combo.AddLabel("Use Combo W (On/Off)" + "                                 " + "Auto E Kill Steal");
@@ -83,6 +87,7 @@ namespace FrOnDaL_Twitch
             _combo.Add("autoE", new CheckBox("Auto E"));
             _combo.AddLabel("Use Q After Kill (On/Off)");
             _combo.Add("Qafterkill", new CheckBox("Use Q After Kill"));
+
             _laneclear = _main.AddSubMenu("Laneclear");
             _laneclear.AddGroupLabel("LaneClear mode settings for Twitch");
             _laneclear.Add("LmanaP", new Slider("LaneClear Mana Control Min mana percentage ({0}%) to use W and E", 50, 1));
@@ -93,12 +98,14 @@ namespace FrOnDaL_Twitch
             _laneclear.Add("e", new CheckBox("Use E", false));
             _laneclear.Add("MinionsEhit", new Slider("Min minions hit {0} to use E", 3, 1, 8));
             _laneclear.Add("MinionsEstacks", new Slider("{0} stacks aa", 3, 1, 4));
+
             _jungleclear = _main.AddSubMenu("Jungleclear");
             _jungleclear.AddGroupLabel("JungleClear mode settings for Twitch");         
             _jungleclear.Add("JmanaP", new Slider("Jungle Clear Mana Control Min mana percentage ({0}%) to use W and E", 30, 1));
             _jungleclear.AddLabel("Venom Cask (W) settings :"+"                               "+ "Contaminate (E) settings :");
             _jungleclear.Add("w", new CheckBox("Use W"));
-            _jungleclear.Add("e", new CheckBox("Use E")); 
+            _jungleclear.Add("e", new CheckBox("Use E"));
+
             _drawings = _main.AddSubMenu("Drawings");
             _drawings.AddLabel("Use Drawings W-E-R (On/Off)");
             _drawings.Add("w", new CheckBox("Draw W and R", false));
@@ -110,6 +117,7 @@ namespace FrOnDaL_Twitch
             _drawings.AddLabel("Use Draw E Damage (On/Off)"+ "                           " + "Monsters Smite Damage (On/Off)");
             _drawings.Add("EKillStealD", new CheckBox("Damage Indicator [E Damage]"));
             _drawings.Add("smiteDamage", new CheckBox("Damage Indicator [Smite Damage]", false));
+
             _misc = _main.AddSubMenu("Misc");
             _misc.AddLabel("Auto base use Q (On/Off)");        
             _misc.Add("autob", new CheckBox("Auto Base Q (On/Off)"));
@@ -131,12 +139,19 @@ namespace FrOnDaL_Twitch
             _misc.Add("krug", new CheckBox("Auto Smite Krugs (On/Off)", false));
             _misc.Add("razor", new CheckBox("Auto Smite Razorbeak (On/Off)", false));
             _misc.Add("hero", new CheckBox("Auto Smite Champions (On/Off)"));
+
             var firstOrDefault = Twitch.Spellbook.Spells.FirstOrDefault(s => s.SData.Name.ToLower().Contains("smite"));
             if (firstOrDefault != null)
-                _smite = new Spell.Targeted(firstOrDefault.Slot, 570);
+            _smite = new Spell.Targeted(firstOrDefault.Slot, 570);
         }
+
         public static void OnLevelUpR(Obj_AI_Base sender, Obj_AI_BaseLevelUpEventArgs args)
-        {if (Twitch.Level > 4){_lvl.LevelSpell(SpellSlot.R);}}
+        {
+            if (Twitch.Level > 4)
+            {
+                _lvl.LevelSpell(SpellSlot.R);
+            }
+        }
         private static void auto_baseQ(Spellbook sender, SpellbookCastSpellEventArgs eventArgs)
         {
             if (eventArgs.Slot != SpellSlot.Recall || !_q.IsReady() || !_misc["autob"].Cast<CheckBox>().CurrentValue) return;
@@ -158,17 +173,23 @@ namespace FrOnDaL_Twitch
             if (Orbwalker.ActiveModesFlags.HasFlag(Orbwalker.ActiveModes.LaneClear))
             {
                 if (Twitch.ManaPercent >= _laneclear["LmanaP"].Cast<Slider>().CurrentValue)
-                    {LanClear(); }              
+                {
+                    LanClear();
+                }              
             }
             if (Orbwalker.ActiveModesFlags.HasFlag(Orbwalker.ActiveModes.JungleClear))
-            {                
+            {
                 if (Twitch.ManaPercent >= _jungleclear["JmanaP"].Cast<Slider>().CurrentValue)
-                    {JunClear(); }            
+                {
+                    JunClear();
+                }            
             }
             if (!_combo["autoE"].Cast<CheckBox>().CurrentValue) return;
             var rival = EntityManager.Heroes.Enemies.Where(x => x.IsValid && !x.IsDead && !x.IsInvulnerable && x.Passive() && Prediction.Health.GetPrediction(x, 275) < ESpellDamage(x)).FirstOrDefault(d => d.IsInRange(Twitch, _e.Range));
             if (rival != null && _e.IsReady())
-            { _e.Cast();}
+            {
+                _e.Cast();
+            }
         }
         private static void SpellDraw(EventArgs args)
         {
@@ -186,16 +207,27 @@ namespace FrOnDaL_Twitch
                 var farm = EntityManager.MinionsAndMonsters.GetLaneMinions(EntityManager.UnitTeam.Enemy, Twitch.ServerPosition).Where(x => x.IsInRange(Twitch, _w.Range));              
                 var keyhit = _w.GetBestCircularCastPosition(farm);
                 if (keyhit.HitNumber >= _laneclear["UnitsWhit"].Cast<Slider>().CurrentValue && _e.IsReady())
-                    { _w.Cast(keyhit.CastPosition);}              
+                {
+                    _w.Cast(keyhit.CastPosition);
+                }              
             }
             if (!_laneclear["e"].Cast<CheckBox>().CurrentValue) return;
             {
                 var farm = EntityManager.MinionsAndMonsters.GetLaneMinions(EntityManager.UnitTeam.Enemy, Twitch.ServerPosition).Where(x => x.IsInRange(Twitch, _e.Range) && x.Passive());
                 var objAiMinions = farm as Obj_AI_Minion[] ?? farm.ToArray();
-                if (objAiMinions.Count(c =>Prediction.Health.GetPrediction(c, 275) < ESpellDamage(c) && StacksPassive(c) >= _laneclear["MinionsEstacks"].Cast<Slider>().CurrentValue) >= _laneclear["MinionsEhit"].Cast<Slider>().CurrentValue && _e.IsReady())
-                {_e.Cast();}
+                if (
+                    objAiMinions.Count(
+                        c =>
+                            Prediction.Health.GetPrediction(c, 275) < ESpellDamage(c) &&
+                            StacksPassive(c) >= _laneclear["MinionsEstacks"].Cast<Slider>().CurrentValue) >=
+                    _laneclear["MinionsEhit"].Cast<Slider>().CurrentValue && _e.IsReady())
+                {
+                    _e.Cast();
+                }
                 if (objAiMinions.Count(c => StacksPassive(c) >= _laneclear["MinionsEstacks"].Cast<Slider>().CurrentValue) < _laneclear["MinionsEhit"].Cast<Slider>().CurrentValue && _e.IsReady()) return;
-                {_e.Cast();}                
+                {
+                    _e.Cast();
+                }                
             }
         }
         private static void JunClear()
@@ -203,7 +235,9 @@ namespace FrOnDaL_Twitch
             if (!_jungleclear["w"].Cast<CheckBox>().CurrentValue) return;
             var farmjung = EntityManager.MinionsAndMonsters.GetJungleMonsters(Twitch.ServerPosition).FirstOrDefault(x => x.IsInRange(Twitch, 550));
             if (farmjung != null && _w.IsReady())
-            { _w.Cast(farmjung.ServerPosition); }
+            {
+                _w.Cast(farmjung.ServerPosition);
+            }
         }
         private static void AutoSmite(EventArgs args)
         {           
@@ -252,7 +286,9 @@ namespace FrOnDaL_Twitch
                 var farmjung = EntityManager.MinionsAndMonsters.Monsters.LastOrDefault(x => x.IsInRange(Twitch, _e.Range) && x.Passive() && !x.BaseSkinName.ToLower().Contains("mini"));
                 if (farmjung == null || !_e.IsReady()) return;
                 if (farmjung.Health <= ESpellDamage(farmjung))
-                {_e.Cast();}
+                {
+                    _e.Cast();
+                }
             }
         }
         private static void QafterKill(GameNotifyEventArgs afterKill)
@@ -322,18 +358,12 @@ namespace FrOnDaL_Twitch
         {
             foreach (var monstersDamage in EntityManager.MinionsAndMonsters.Monsters.Where(x => Twitch.Distance(x) < 1000 && !x.BaseSkinName.ToLower().Contains("mini") && !x.BaseSkinName.Contains("Crab") && !x.BaseSkinName.Contains("Dragon") && !x.BaseSkinName.Contains("Baron") && !x.IsDead && x.IsHPBarRendered && x.VisibleOnScreen))
             {
-               /* if (monstersDamage.BaseSkinName.Contains("Dragon"))
-                {_genislikj = 142; _yukseklikj = 9.82f;_dikeyj = 9; _yatayj = -3;}*/
                 if (monstersDamage.BaseSkinName.Contains("RiftHerald"))
                 {_genislikj = 142; _yukseklikj = 9.92f;_dikeyj = 8; _yatayj = -3;}
-                /*if (monstersDamage.BaseSkinName.Contains("Baron"))
-                {_genislikj = 192; _yukseklikj = 13.82f;_dikeyj = 9; _yatayj = -28;}*/
                 if (monstersDamage.BaseSkinName.Contains("Blue") || monstersDamage.BaseSkinName.Contains("Red"))
                 {_genislikj = 142; _yukseklikj = 9.82f;_dikeyj = 7; _yatayj = -3;}
                 if (monstersDamage.BaseSkinName.Contains("Gromp") || monstersDamage.BaseSkinName.Contains("Razorbeak") || monstersDamage.BaseSkinName.Contains("Krug") || monstersDamage.BaseSkinName.Contains("Murkwolf"))
-                {_genislikj = 91; _yukseklikj = 3.999f;_dikeyj = 7.999f; _yatayj = 22;}
-               /* if (monstersDamage.BaseSkinName.Contains("Crab"))
-                {_genislikj = 59; _yukseklikj = 3.999f;_dikeyj = 21.999f; _yatayj = 38;}*/
+                {_genislikj = 91; _yukseklikj = 3.999f;_dikeyj = 7.999f; _yatayj = 22;}   
                 if (!_drawings["smiteDamage"].Cast<CheckBox>().CurrentValue) continue;
                 var smiteDamage = Twitch.GetSummonerSpellDamage(monstersDamage, DamageLibrary.SummonerSpells.Smite);
                 var hasarXj = (monstersDamage.TotalShieldHealth() - smiteDamage > 0 ? monstersDamage.TotalShieldHealth() - smiteDamage : 0) / (monstersDamage.MaxHealth + monstersDamage.AllShield + monstersDamage.AttackShield + monstersDamage.MagicShield);
