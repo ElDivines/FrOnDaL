@@ -7,6 +7,7 @@ using EloBuddy.SDK.Menu;
 using EloBuddy.SDK.Events;
 using EloBuddy.SDK.Menu.Values;
 using EloBuddy.SDK.Enumerations;
+using EloBuddy.SDK.Rendering;
 using Color = System.Drawing.Color;
 
 namespace FrOnDaL_Twitch
@@ -21,6 +22,7 @@ namespace FrOnDaL_Twitch
         private static Spell.Active _q, _e;
         private static Spell.Skillshot _w;
         private static Spell.Targeted _smite;
+        public static Text QTimer;
         private static float _dikeyj, _yatayj, _genislikj, _yukseklikj;
         private static float _dikey, _yatay;
         private static float _genislik = 104;
@@ -68,7 +70,7 @@ namespace FrOnDaL_Twitch
             Spellbook.OnCastSpell += auto_baseQ;
             Obj_AI_Base.OnProcessSpellCast += AutoItem;
             Chat.Print("<font color='#00FFCC'><b>[FrOnDaL]</b></font> Twitch Successfully loaded.");
-
+            QTimer = new Text("", new System.Drawing.Font(System.Drawing.FontFamily.GenericSansSerif, 11, System.Drawing.FontStyle.Strikeout));
             _q = new Spell.Active(SpellSlot.Q);
             _w = new Spell.Skillshot(SpellSlot.W, 950, SkillShotType.Circular, 250, 1400, 280) { AllowedCollisionCount = -1, MinimumHitChance = HitChance.Medium };
             _e = new Spell.Active(SpellSlot.E, 1200);
@@ -202,22 +204,15 @@ namespace FrOnDaL_Twitch
                 _smite.DrawRange(_misc["autosmite"].Cast<KeyBind>().CurrentValue ? Color.FromArgb(130, Color.White) : Color.FromArgb(130, Color.Gray));
             }
             if (!_drawings["qTimer"].Cast<CheckBox>().CurrentValue || !ObjectManager.Player.HasBuff("TwitchHideInShadows")) return;
-            var position = new Vector3( ObjectManager.Player.Position.X + 40,  ObjectManager.Player.Position.Y - 115,  ObjectManager.Player.Position.Z);
-            position.DrawTextOnScreen( "Q Timer:  " + $"{ObjectManager.Player.GetRemainingBuffTime("TwitchHideInShadows"):0.0}", Color.AntiqueWhite);     
+            QTimer.Position = Drawing.WorldToScreen(Player.Instance.Position) - new Vector2(20, 84);
+            QTimer.Color = Color.AntiqueWhite;
+            QTimer.TextValue = "Q Timer : " + $"{ObjectManager.Player.GetRemainingBuffTime("TwitchHideInShadows"):0.0}";
+            QTimer.Draw();         
         }
         /*iJabbaReborn Thanks*/
-        private static void DrawTextOnScreen(this Vector3 location, string message, Color colour)
-        {
-            var worldToScreen = Drawing.WorldToScreen(location);
-            Drawing.DrawText(worldToScreen[0] - message.Length * 5, worldToScreen[1] - 200, colour, message);
-        }
         private static float GetRemainingBuffTime(this Obj_AI_Base target, string buffName)
         {
-            return
-                target.Buffs.OrderByDescending(buff => buff.EndTime - Game.Time)
-                    .Where(buff => string.Equals(buff.Name, buffName, StringComparison.CurrentCultureIgnoreCase))
-                    .Select(buff => buff.EndTime)
-                    .FirstOrDefault() - Game.Time;
+            return target.Buffs.OrderByDescending(buff => buff.EndTime - Game.Time).Where(buff => string.Equals(buff.Name, buffName, StringComparison.CurrentCultureIgnoreCase)).Select(buff => buff.EndTime).FirstOrDefault() - Game.Time;
         }
         /*iJabbaReborn Thanks*/
         private static void LanClear()
