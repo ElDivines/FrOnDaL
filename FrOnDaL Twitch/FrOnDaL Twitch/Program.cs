@@ -107,6 +107,8 @@ namespace FrOnDaL_Twitch
             _jungleclear.Add("e", new CheckBox("Use E"));
 
             _drawings = _main.AddSubMenu("Drawings");
+            _drawings.AddLabel("Use Drawings Q Timer (On/Off)");
+            _drawings.Add("qTimer", new CheckBox("Draw Q Timer"));
             _drawings.AddLabel("Use Drawings W-E-R (On/Off)");
             _drawings.Add("w", new CheckBox("Draw W and R", false));
             _drawings.Add("e", new CheckBox("Draw E", false));
@@ -190,7 +192,7 @@ namespace FrOnDaL_Twitch
             {
                 _e.Cast();
             }
-        }
+        }    
         private static void SpellDraw(EventArgs args)
         {
             if (_drawings["w"].Cast<CheckBox>().CurrentValue){ _w.DrawRange(Color.FromArgb(130, Color.Green));}
@@ -199,7 +201,25 @@ namespace FrOnDaL_Twitch
             {
                 _smite.DrawRange(_misc["autosmite"].Cast<KeyBind>().CurrentValue ? Color.FromArgb(130, Color.White) : Color.FromArgb(130, Color.Gray));
             }
+            if (!_drawings["qTimer"].Cast<CheckBox>().CurrentValue || !ObjectManager.Player.HasBuff("TwitchHideInShadows")) return;
+            var position = new Vector3( ObjectManager.Player.Position.X + 40,  ObjectManager.Player.Position.Y - 115,  ObjectManager.Player.Position.Z);
+            position.DrawTextOnScreen( "Q Timer:  " + $"{ObjectManager.Player.GetRemainingBuffTime("TwitchHideInShadows"):0.0}", Color.AntiqueWhite);     
         }
+        /*iJabbaReborn Thanks*/
+        private static void DrawTextOnScreen(this Vector3 location, string message, Color colour)
+        {
+            var worldToScreen = Drawing.WorldToScreen(location);
+            Drawing.DrawText(worldToScreen[0] - message.Length * 5, worldToScreen[1] - 200, colour, message);
+        }
+        private static float GetRemainingBuffTime(this Obj_AI_Base target, string buffName)
+        {
+            return
+                target.Buffs.OrderByDescending(buff => buff.EndTime - Game.Time)
+                    .Where(buff => string.Equals(buff.Name, buffName, StringComparison.CurrentCultureIgnoreCase))
+                    .Select(buff => buff.EndTime)
+                    .FirstOrDefault() - Game.Time;
+        }
+        /*iJabbaReborn Thanks*/
         private static void LanClear()
         {
             if (_laneclear["w"].Cast<CheckBox>().CurrentValue)
