@@ -31,6 +31,22 @@ namespace FrOnDaL_Velkoz
             return enemy.Health + enemy.AllShield + enemy.AttackShield + (magicShields ? enemy.MagicShield : 0);
         }
         public static void OnLevelUpR(Obj_AI_Base sender, Obj_AI_BaseLevelUpEventArgs args) { if (Velkoz.Level > 4) { _lvl.LevelSpell(SpellSlot.R); } }
+        /*UltiLogicFollowEnemy*/
+        private static Vector3 _rCastPos; // Store last R Cast Position
+        private static void Obj_AI_Base_OnProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
+        {
+            if (sender.IsMe && args.Slot == SpellSlot.R)
+                _rCastPos = sender.ServerPosition.Extend(args.End, _r.Range).To3DWorld();// Extend the casted position to max R Rnage
+        }
+        private static void Game_OnUpdate(EventArgs args)
+        {
+            var target = EntityManager.Heroes.Enemies.OrderBy(t => t.Distance(_rCastPos)).FirstOrDefault(t => t.IsValidTarget(_r.Range)); // Get target near R Casted Position
+            if (Velkoz.Spellbook.IsChanneling && target != null) // Detect player is Channeling
+            {
+                Velkoz.Spellbook.UpdateChargeableSpell(_r.Slot, target.ServerPosition, false, false); // Change cast Position to target position
+            }
+        }
+        /*UltiLogicFollowEnemy*/
         private static void Main() { Loading.OnLoadingComplete += OnLoadingComplete; }
 
         private static void OnLoadingComplete(EventArgs args)
@@ -41,7 +57,7 @@ namespace FrOnDaL_Velkoz
             _w = new Spell.Skillshot(SpellSlot.W, 1050, SkillShotType.Linear) { AllowedCollisionCount = int.MaxValue, Range = 1050, CastDelay = 250, Speed = 1700, Width = 85 };
             _e = new Spell.Skillshot(SpellSlot.E, 800, SkillShotType.Linear)  { AllowedCollisionCount = int.MaxValue, Range = 800, CastDelay = 50, Speed = 1500, Width = 150 };
             _r = new Spell.Skillshot(SpellSlot.R, 1550, SkillShotType.Linear) { AllowedCollisionCount = int.MaxValue, Range = 1550, CastDelay = 30, Speed = int.MaxValue, Width = 85 };
-
+            
             Interrupter.OnInterruptableSpell += DangerousSpellsEInterupt;
             Gapcloser.OnGapcloser += AntiGapCloser;
             Game.OnTick += VelkozActive;
@@ -49,6 +65,8 @@ namespace FrOnDaL_Velkoz
             Drawing.OnDraw += SpellDraw;
             _lvl = Velkoz.Spellbook;
             Obj_AI_Base.OnLevelUp += OnLevelUpR;
+            Game.OnUpdate += Game_OnUpdate; // This to override game input
+            Obj_AI_Base.OnProcessSpellCast += Obj_AI_Base_OnProcessSpellCast; // use the event to get R Casted position
             Chat.Print("<font color='#00FFCC'><b>[FrOnDaL]</b></font> Velkoz Successfully loaded.");
 
             _main = MainMenu.AddMenu("FrOnDaL Velkoz", "index");
@@ -182,33 +200,6 @@ namespace FrOnDaL_Velkoz
         /*VelkozActive*/
         private static void VelkozActive(EventArgs args)
         {
-            //not working
-            if (Velkoz.Spellbook.IsChanneling)
-            {
-                var endPoint = new Vector2();
-                foreach (var obj in ObjectManager.Get<GameObject>().Where(obj => obj != null && obj.IsValid && obj.Name.Contains("Velkoz_") && obj.Name.Contains("_R_Beam_End")))
-                {
-                    endPoint = Velkoz.ServerPosition.To2D() + _r.Range * (obj.Position - Velkoz.ServerPosition).To2D().Normalized();
-                    break;
-                }
-
-                if (!endPoint.IsValid()) return;
-                var targets = ObjectManager.Get<AIHeroClient>().Where(h => h.IsValidTarget(_r.Range)).Where(enemy => enemy.ServerPosition.To2D().Distance(Velkoz.ServerPosition.To2D(), endPoint, true) < 400).Cast<Obj_AI_Base>().ToList();
-
-                if (targets.Count > 0)
-                {
-                    var target = targets.OrderBy(t => t.Health / Velkoz.GetSpellDamage(t, SpellSlot.Q)).ToList()[0];
-                    ObjectManager.Player.Spellbook.UpdateChargeableSpell(SpellSlot.R, target.ServerPosition, false, false);
-                }
-                else
-                {
-                    ObjectManager.Player.Spellbook.UpdateChargeableSpell(SpellSlot.R, Game.CursorPos, false, false);
-                }
-
-                return;
-            }
-            //not working
-
             if (Orbwalker.ActiveModesFlags.Equals(Orbwalker.ActiveModes.Combo))
             {
                 Combo();
@@ -435,7 +426,7 @@ namespace FrOnDaL_Velkoz
                 Drawing.DrawLine(go, finish, _yukseklik, Color.FromArgb(180, Color.Green));
             }
         }
-        /*Damage Indicator*/
+        /*Damage Indicator*/      
         private static bool IsQActive => _q.Name.Equals("VelkozQSplitActivate");
     }
 }
