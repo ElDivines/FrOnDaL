@@ -201,17 +201,16 @@ namespace FrOnDaL_Velkoz
         private static void VelkozActive(EventArgs args)
         {
             if (Orbwalker.ActiveModesFlags.Equals(Orbwalker.ActiveModes.Combo))
-            {
+            {                            
+                Combo();
                 if (_combo["comboR"].Cast<CheckBox>().CurrentValue)
                 {
                     var hedefR = TargetSelector.GetTarget(_r.Range, DamageType.Magical);
-                    if (TotalHealth(hedefR) < RDamage(hedefR))
+                    if (TotalHealth(hedefR) < RDamage(hedefR) && _r.IsReady() && hedefR.IsValidTarget(1000) && hedefR.Distance(Velkoz.ServerPosition) > 150 && hedefR.Distance(Velkoz.ServerPosition) < 1000)
                     {
                         ManuelR();
                     }
                 }
-                
-                Combo();
             }
             if (Orbwalker.ActiveModesFlags.HasFlag(Orbwalker.ActiveModes.LaneClear))
             {
