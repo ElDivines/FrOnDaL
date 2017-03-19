@@ -93,7 +93,7 @@ namespace FrOnDaL_Velkoz
             _combo.AddLabel("Use Manuel R");
             _combo.Add("r", new KeyBind("Use R Key", false, KeyBind.BindTypes.HoldActive, 'T'));
             _combo.AddSeparator(5);
-            _combo.Add("RHitChance", new Slider("R hitchance percent : {0}", 30));         
+            _combo.Add("RHitChance", new Slider("R hitchance percent : {0}", 20));         
             /*Combo*/
 
             /*Harass*/
@@ -202,6 +202,15 @@ namespace FrOnDaL_Velkoz
         {
             if (Orbwalker.ActiveModesFlags.Equals(Orbwalker.ActiveModes.Combo))
             {
+                if (_combo["comboR"].Cast<CheckBox>().CurrentValue)
+                {
+                    var hedefR = TargetSelector.GetTarget(_r.Range, DamageType.Magical);
+                    if (TotalHealth(hedefR) < RDamage(hedefR))
+                    {
+                        ManuelR();
+                    }
+                }
+                
                 Combo();
             }
             if (Orbwalker.ActiveModesFlags.HasFlag(Orbwalker.ActiveModes.LaneClear))
@@ -280,14 +289,11 @@ namespace FrOnDaL_Velkoz
         private static void Harras()
         {
             if (_q.IsReady() && _q.ToggleState == 0 && !IsQActive && _harrass["q"].Cast<CheckBox>().CurrentValue && Velkoz.ManaPercent >= _harrass["HmanaP"].Cast<Slider>().CurrentValue)
-            {
+            {              
                 var harassTargetQ = TargetSelector.GetTarget(_q.Range, DamageType.Magical);
-                var harassQ = EntityManager.Heroes.Enemies.Where(x => Velkoz.IsInRange(x, _q.Range) && x.IsValid && !x.IsDead);
-                var qpred = _q.GetBestLinearCastPosition(harassQ);
-                if (harassTargetQ != null)
+                if (harassTargetQ != null && harassTargetQ.IsValidTarget(_q.Range) && _q.GetPrediction(harassTargetQ).HitChance >= HitChance.High && harassTargetQ.Distance(Velkoz.ServerPosition) > 150 && harassTargetQ.Distance(Velkoz.ServerPosition) < _q.Range)
                 {
-                    _q.Cast(qpred.CastPosition);
-
+                    _q.Cast(harassTargetQ);
                 }
             }
             if (_w.IsReady() && _harrass["w"].Cast<CheckBox>().CurrentValue && Velkoz.ManaPercent >= _harrass["HmanaP"].Cast<Slider>().CurrentValue)
@@ -302,7 +308,7 @@ namespace FrOnDaL_Velkoz
                     
                 }
             }
-            if (!_e.IsReady() || !_harrass["e"].Cast<CheckBox>().CurrentValue && !(Velkoz.ManaPercent >= _harrass["HmanaP"].Cast<Slider>().CurrentValue)) return;
+            if (!_e.IsReady() || !_harrass["e"].Cast<CheckBox>().CurrentValue || !(Velkoz.ManaPercent >= _harrass["HmanaP"].Cast<Slider>().CurrentValue)) return;
             {
                 var harassTargetE = TargetSelector.GetTarget(_e.Range, DamageType.Magical);
                 var harassE = EntityManager.Heroes.Enemies.Where(x => Velkoz.IsInRange(x, _e.Range) && x.IsValid && !x.IsDead).ToList();
@@ -320,14 +326,11 @@ namespace FrOnDaL_Velkoz
         {
             if (_q.IsReady() && _q.ToggleState == 0 && !IsQActive && _combo["q"].Cast<CheckBox>().CurrentValue)
             {
-                var comboTargetQ = TargetSelector.GetTarget(_q.Range, DamageType.Magical);
-                var comboQ = EntityManager.Heroes.Enemies.Where(x => Velkoz.IsInRange(x, _q.Range) && x.IsValid && !x.IsDead);
-                var qpred = _q.GetBestLinearCastPosition(comboQ, (int)HitChance.High);
-                if (comboTargetQ != null)
-                {
-                        _q.Cast(qpred.CastPosition);
-                    
-                }
+                  var comboTargetQ = TargetSelector.GetTarget(_q.Range, DamageType.Magical);
+                  if (comboTargetQ != null && comboTargetQ.IsValidTarget(_q.Range) && _q.GetPrediction(comboTargetQ).HitChance >= HitChance.High && comboTargetQ.Distance(Velkoz.ServerPosition) > 150 && comboTargetQ.Distance(Velkoz.ServerPosition) < _q.Range)
+                  {
+                          _q.Cast(comboTargetQ);
+                  }            
             }
             if (_w.IsReady() && _combo["w"].Cast<CheckBox>().CurrentValue)
             {
@@ -342,14 +345,6 @@ namespace FrOnDaL_Velkoz
                     }
                 }
             }
-            if (_combo["comboR"].Cast<CheckBox>().CurrentValue)
-            {
-                var hedefR = TargetSelector.GetTarget(_r.Range, DamageType.Magical);
-                if(TotalHealth(hedefR) < RDamage(hedefR))          
-                {
-                    ManuelR();
-                }
-            }
             if (!_e.IsReady() || !_combo["e"].Cast<CheckBox>().CurrentValue) return;
             {
                 var comboTargetE = TargetSelector.GetTarget(_e.Range, DamageType.Magical);
@@ -359,7 +354,7 @@ namespace FrOnDaL_Velkoz
                 {                    
                     _e.Cast(epred.CastPosition);                  
                 }
-            }         
+            }
         }
         /*Combo*/
 
