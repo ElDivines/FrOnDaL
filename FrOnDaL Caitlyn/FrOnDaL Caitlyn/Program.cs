@@ -32,6 +32,10 @@ namespace FrOnDaL_Caitlyn
         protected static bool Item => Caitlyn.InventoryItems.Any(x => x.Id == ItemId.Rapid_Firecannon);
         protected static bool ItemStackedUp => Caitlyn.Buffs.Any(x => Item && x.Name.ToLowerInvariant() == "itemstatikshankcharge" && x.Count == 100);
         protected static float Aa => ItemStackedUp ? 900 : 300;
+        private static double RDamage(Obj_AI_Base d)
+        {
+            var damageR = Caitlyn.CalculateDamageOnUnit(d, DamageType.Physical, (float)new double[] { 250, 475, 700 }[_r.Level - 1] + Caitlyn.TotalAttackDamage / 100 * 200); return damageR;
+        }
         private static bool SpellShield(Obj_AI_Base shield)
         {
             return shield.HasBuffOfType(BuffType.SpellShield) || shield.HasBuffOfType(BuffType.SpellImmunity);
@@ -335,7 +339,7 @@ namespace FrOnDaL_Caitlyn
         private static void AutoKillR()
         {
             var autoKill = EntityManager.Heroes.Enemies.Where(x => x.IsValidTarget(_r.Range) && !SpellBuff(x) && !SpellShield(x));
-            foreach (var autoKillTarget in autoKill.Where(x => TotalHealth(x) < Caitlyn.GetSpellDamage(x, SpellSlot.R) && !Caitlyn.IsInAutoAttackRange(x) && !(Caitlyn.CountEnemyHeroesInRangeWithPrediction(600, 350) >= 1) && _r.IsReady() && _r.IsInRange(x) && !Caitlyn.IsUnderEnemyturret()))
+            foreach (var autoKillTarget in autoKill.Where(x => TotalHealth(x) < RDamage(x) && !Caitlyn.IsInAutoAttackRange(x) && !(Caitlyn.CountEnemyHeroesInRangeWithPrediction(600, 350) >= 1) && _r.IsReady() && _r.IsInRange(x) && !Caitlyn.IsUnderEnemyturret()))
             {
                 _r.Cast(autoKillTarget);
             }
@@ -367,7 +371,7 @@ namespace FrOnDaL_Caitlyn
                     default: _dikey = 9.8f; _yatay = 2; break;
                 }
                 if (!_drawings["RKillStealD"].Cast<CheckBox>().CurrentValue) continue;
-                var damage = Caitlyn.GetSpellDamage(enemy, SpellSlot.R);
+                var damage = RDamage(enemy);
                 var hasarX = (enemy.TotalShieldHealth() - damage > 0 ? enemy.TotalShieldHealth() - damage : 0) / (enemy.MaxHealth + enemy.AllShield + enemy.AttackShield + enemy.MagicShield);
                 var hasarY = enemy.TotalShieldHealth() / (enemy.MaxHealth + enemy.AllShield + enemy.AttackShield + enemy.MagicShield);
                 var go = new Vector2((int)(enemy.HPBarPosition.X + _yatay + hasarX * genislik), (int)enemy.HPBarPosition.Y + _dikey);
