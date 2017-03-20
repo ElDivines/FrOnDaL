@@ -31,6 +31,10 @@ namespace FrOnDaL_Varus
         private static bool BuffW(Obj_AI_Base unit) => unit.Buffs.Any(x => x.IsActive && x.Name.Equals("varuswdebuff", StringComparison.CurrentCultureIgnoreCase));
         private static BuffInstance GoBuffW(Obj_AI_Base unit) => BuffW(unit) ? unit.Buffs.First(x => x.IsActive && x.Name.Equals("varuswdebuff", StringComparison.CurrentCultureIgnoreCase)) : null;
         private static bool SpellShield(Obj_AI_Base shield) { return shield.HasBuffOfType(BuffType.SpellShield) || shield.HasBuffOfType(BuffType.SpellImmunity); }
+        private static double QDamage(Obj_AI_Base d)
+        {
+            var damageQ = Varus.CalculateDamageOnUnit(d, DamageType.Physical, (float)new double[] { 12, 58, 104, 150, 196 }[_q.Level - 1] + Varus.TotalAttackDamage / 100 * 132); return damageQ; 
+        }
         private static bool SpellBuff(AIHeroClient buf)
         {
             if (buf.Buffs.Any(x => x.IsValid && (x.Name.Equals("ChronoShift", StringComparison.CurrentCultureIgnoreCase) || x.Name.Equals("FioraW", StringComparison.CurrentCultureIgnoreCase) || x.Name.Equals("TaricR", StringComparison.CurrentCultureIgnoreCase) || x.Name.Equals("BardRStasis", StringComparison.CurrentCultureIgnoreCase) ||
@@ -308,7 +312,7 @@ namespace FrOnDaL_Varus
                     default: _dikey = 9.8f; _yatay = 2; break;
                 }
                 if (!_drawings["damageQ"].Cast<CheckBox>().CurrentValue) continue;
-                var damage = Varus.GetSpellDamage(enemy, SpellSlot.Q) + StacksWDamage(enemy);
+                var damage = QDamage(enemy) + StacksWDamage(enemy);
                 var hasarX = (enemy.TotalShieldHealth() - damage > 0 ? enemy.TotalShieldHealth() - damage : 0) / (enemy.MaxHealth + enemy.AllShield + enemy.AttackShield + enemy.MagicShield);
                 var hasarY = enemy.TotalShieldHealth() / (enemy.MaxHealth + enemy.AllShield + enemy.AttackShield + enemy.MagicShield);
                 var go = new Vector2((int)(enemy.HPBarPosition.X + _yatay + hasarX * genislik), (int)enemy.HPBarPosition.Y + _dikey);
