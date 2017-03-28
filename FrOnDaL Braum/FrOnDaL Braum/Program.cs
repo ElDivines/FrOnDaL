@@ -107,7 +107,7 @@ namespace FrOnDaL_Braum
 
             /*Draw*/
             _drawings = _main.AddSubMenu("Drawings");
-            _drawings.AddLabel("Use Drawings Q-W-E-R (On/Off)");
+            _drawings.AddLabel("Use Drawings Q-W-R (On/Off)");
             _drawings.Add("q", new CheckBox("Draw Q", false));
             _drawings.Add("w", new CheckBox("Draw W", false));
             _drawings.Add("r", new CheckBox("Draw R", false));
@@ -115,7 +115,7 @@ namespace FrOnDaL_Braum
 
             /*Misc*/
             _misc = _main.AddSubMenu("Misc");
-            _misc.AddLabel("Anti Gap Closer Q-E-R (On/Off)");
+            _misc.AddLabel("Anti Gap Closer Q-R (On/Off)");
             _misc.Add("Qgap", new CheckBox("Use Q Anti Gap Closer (On/Off)"));
             _misc.Add("Rgap", new CheckBox("Use R Anti Gap Closer (On/Off)"));
             _misc.AddSeparator(5);
