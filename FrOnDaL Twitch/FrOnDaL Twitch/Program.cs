@@ -123,8 +123,9 @@ namespace FrOnDaL_Twitch
             _drawings.Add("smiteDamage", new CheckBox("Damage Indicator [Smite Damage]", false));
 
             _misc = _main.AddSubMenu("Misc");
-            _misc.AddLabel("Auto base use Q (On/Off)");        
-            _misc.Add("autob", new CheckBox("Auto Base Q (On/Off)"));
+            _misc.AddLabel("Auto base use Q (On/Off)");
+            _misc.Add("autob2", new CheckBox("Auto Base Q (On/Off)"));
+            _misc.Add("autob", new KeyBind("Auto Base Q Key", false, KeyBind.BindTypes.HoldActive, 'B'));           
             _misc.AddSeparator(5);
             _misc.AddLabel("Auto Youmuu Ghost Blade");
             _misc.Add("ghostBladeR", new CheckBox("Youmuu Ghost Blade --> Use R"));
@@ -157,8 +158,8 @@ namespace FrOnDaL_Twitch
             }
         }
         private static void auto_baseQ(Spellbook sender, SpellbookCastSpellEventArgs eventArgs)
-        {
-            if (eventArgs.Slot != SpellSlot.Recall || !_q.IsReady() || !_misc["autob"].Cast<CheckBox>().CurrentValue) return;
+        {     
+            if (eventArgs.Slot != SpellSlot.Recall || !_q.IsReady() || !_misc["autob2"].Cast<CheckBox>().CurrentValue || !_misc["autob"].Cast<KeyBind>().CurrentValue) return;
             _q.Cast();
             Core.DelayAction(() => ObjectManager.Player.Spellbook.CastSpell(SpellSlot.Recall), _q.CastDelay + 300);
             eventArgs.Process = false;       
@@ -255,7 +256,11 @@ namespace FrOnDaL_Twitch
             }
         }
         private static void AutoSmite(EventArgs args)
-        {           
+        {
+            if (_misc["autob2"].Cast<CheckBox>().CurrentValue && _misc["autob"].Cast<KeyBind>().CurrentValue)
+            {
+                ObjectManager.Player.Spellbook.CastSpell(SpellSlot.Recall);
+            }
             if (!Twitch.IsDead && _misc["autosmite"].Cast<KeyBind>().CurrentValue)
             { 
             var smiteChampion = TargetSelector.GetTarget(_smite.Range, DamageType.Physical);
@@ -304,7 +309,7 @@ namespace FrOnDaL_Twitch
                 {
                     _e.Cast();
                 }
-            }
+            }                      
         }
         private static void QafterKill(GameNotifyEventArgs afterKill)
         {
