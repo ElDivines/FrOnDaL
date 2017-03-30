@@ -85,7 +85,7 @@ namespace FrOnDaL_Varus
             _combo.AddLabel("Use Combo Q (On/Off)" + "                                 " + "W stack use Q");
             _combo.Add("q", new CheckBox("Use Q"));
             _combo.Add("qstcW", new CheckBox("W stack use Q (On/Off)", false));
-            _combo.Add("qhitW", new Slider("{0} W stack use E", 2, 1, 3));
+            _combo.Add("qhitW", new Slider("{0} W stack use Q", 2, 1, 3));
             _combo.AddSeparator(5);
             _combo.Add("qlogic", new ComboBox("Q Logic ", 0, "Normal", "FrOnDaL"));
             _combo.AddSeparator(5);
