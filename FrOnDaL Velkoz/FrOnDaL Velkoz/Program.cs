@@ -37,7 +37,7 @@ namespace FrOnDaL_Velkoz
         private static void Obj_AI_Base_OnProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
         {
             if (sender.IsMe && args.Slot == SpellSlot.R)
-                _rCastPos = sender.ServerPosition.Extend(args.End, _r.Range).To3DWorld();// Extend the casted position to max R Rnage
+                _rCastPos = sender.ServerPosition.Extend(args.End, _r.Range).To3DWorld(); //Extend the casted position to max R Rnage
         }     
         /*UltiLogicFollowEnemy*/
         private static void Main() { Loading.OnLoadingComplete += OnLoadingComplete; }
