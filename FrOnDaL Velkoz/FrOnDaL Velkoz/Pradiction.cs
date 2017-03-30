@@ -1,7 +1,7 @@
 ﻿ // ReSharper disable once CheckNamespace
 namespace FrOnDaL_Velkoz.Pradiction
 {
-    /* -> THANK YOU Esk0r*/
+    /* -> THANK YOU Esk0r <- */
     using System;
     using SharpDX;
     using EloBuddy;  
