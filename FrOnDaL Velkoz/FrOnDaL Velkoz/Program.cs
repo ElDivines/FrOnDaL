@@ -10,18 +10,19 @@ using EloBuddy.SDK.Menu.Values;
 using EloBuddy.SDK.Enumerations;
 using System.Collections.Generic;
 using Color = System.Drawing.Color;
-
+ 
 namespace FrOnDaL_Velkoz
 {
     internal class Program
     {
         private static AIHeroClient Velkoz => Player.Instance;
         private static Spellbook _lvl;
-        private static Spell.Skillshot _q, _w, _e, _r;
+        private static Spell.Skillshot _q, _qSplit, _qDummy, _w, _e, _r;
         private static float _dikey, _yatay;
         private static float _genislik = 104;
         private static float _yukseklik = 9.82f;
         private static Menu _main, _combo, _laneclear, _jungleclear, _harrass, _drawings, _misc;
+        private static MissileClient _qMissile;
         private static double RDamage(Obj_AI_Base d)
         {
             var damageR = Velkoz.CalculateDamageOnUnit(d, DamageType.Magical, (float)new double[] { 450, 625, 800 }[_r.Level - 1] + Velkoz.TotalMagicalDamage / 100 * 125); return damageR;
@@ -30,22 +31,14 @@ namespace FrOnDaL_Velkoz
         {
             return enemy.Health + enemy.AllShield + enemy.AttackShield + (magicShields ? enemy.MagicShield : 0);
         }
-        public static void OnLevelUpR(Obj_AI_Base sender, Obj_AI_BaseLevelUpEventArgs args) { if (Velkoz.Level > 4) { _lvl.LevelSpell(SpellSlot.R); } }
+        private static void OnLevelUpR(Obj_AI_Base sender, Obj_AI_BaseLevelUpEventArgs args) { if (Velkoz.Level > 4) { _lvl.LevelSpell(SpellSlot.R); } }
         /*UltiLogicFollowEnemy*/
         private static Vector3 _rCastPos; // Store last R Cast Position
         private static void Obj_AI_Base_OnProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
         {
             if (sender.IsMe && args.Slot == SpellSlot.R)
                 _rCastPos = sender.ServerPosition.Extend(args.End, _r.Range).To3DWorld();// Extend the casted position to max R Rnage
-        }
-        private static void Game_OnUpdate(EventArgs args)
-        {
-            var target = EntityManager.Heroes.Enemies.OrderBy(t => t.Distance(_rCastPos)).FirstOrDefault(t => t.IsValidTarget(_r.Range)); // Get target near R Casted Position
-            if (Velkoz.Spellbook.IsChanneling && target != null) // Detect player is Channeling
-            {
-                Velkoz.Spellbook.UpdateChargeableSpell(_r.Slot, target.ServerPosition, false, false); // Change cast Position to target position
-            }
-        }
+        }     
         /*UltiLogicFollowEnemy*/
         private static void Main() { Loading.OnLoadingComplete += OnLoadingComplete; }
 
@@ -54,10 +47,14 @@ namespace FrOnDaL_Velkoz
             if (Velkoz.Hero != Champion.Velkoz) return;
          
             _q = new Spell.Skillshot(SpellSlot.Q, 1200, SkillShotType.Linear) { AllowedCollisionCount = 0, Range = 1200, CastDelay = 250, Speed = 1300, Width = 50 };
+            _qSplit = new Spell.Skillshot(SpellSlot.Q, 1100, SkillShotType.Linear) { AllowedCollisionCount = 0, Range = 1100, CastDelay = 250, Speed = 2100, Width = 55 };
+            _qDummy = new Spell.Skillshot(SpellSlot.Q, (uint)Math.Sqrt(Math.Pow(_q.Range, 2) + Math.Pow(_qSplit.Range, 2)), SkillShotType.Linear)
+            { AllowedCollisionCount = 0, Range = (uint) Math.Sqrt(Math.Pow(_q.Range, 2) + Math.Pow(_qSplit.Range, 2)), CastDelay = 250, Speed = int.MaxValue, Width = 55 };
             _w = new Spell.Skillshot(SpellSlot.W, 1050, SkillShotType.Linear) { AllowedCollisionCount = int.MaxValue, Range = 1050, CastDelay = 250, Speed = 1700, Width = 85 };
             _e = new Spell.Skillshot(SpellSlot.E, 800, SkillShotType.Linear)  { AllowedCollisionCount = int.MaxValue, Range = 800, CastDelay = 50, Speed = 1500, Width = 150 };
             _r = new Spell.Skillshot(SpellSlot.R, 1550, SkillShotType.Linear) { AllowedCollisionCount = int.MaxValue, Range = 1550, CastDelay = 30, Speed = int.MaxValue, Width = 85 };
-            
+
+            GameObject.OnCreate += Obj_SpellMissile_OnCreate;
             Interrupter.OnInterruptableSpell += DangerousSpellsEInterupt;
             Gapcloser.OnGapcloser += AntiGapCloser;
             Game.OnTick += VelkozActive;
@@ -103,13 +100,14 @@ namespace FrOnDaL_Velkoz
             _harrass.Add("HmanaP", new Slider("Harass Mana Control Min mana percentage ({0}%)", 40, 1));
             _harrass.AddSeparator(5);
             _harrass.AddLabel("Use Harass Q (On/Off)");
-            _harrass.Add("q", new CheckBox("Use Q harass"));           
+            _harrass.Add("q", new CheckBox("Use Q harass"));
+            _harrass.Add("autoq", new CheckBox("Use Q harass Auto", false));
             _harrass.AddSeparator(5);
             _harrass.AddLabel("Use Harass W (On/Off)");
-            _harrass.Add("w", new CheckBox("Use W harass"));           
+            _harrass.Add("w", new CheckBox("Use W harass", false));           
             _harrass.AddSeparator(5);
             _harrass.AddLabel("Use Harass E (On/Off)");
-            _harrass.Add("e", new CheckBox("Use E harass"));
+            _harrass.Add("e", new CheckBox("Use E harass", false));
             _harrass.AddSeparator(5);
             _harrass.AddLabel("Harass Key C");
             _harrass.Add("harC", new KeyBind("Use Harass Key C", false, KeyBind.BindTypes.HoldActive, 'C'));
@@ -175,6 +173,19 @@ namespace FrOnDaL_Velkoz
             _misc.Add("interruptE", new CheckBox("Use E Interrupt (On/Off)"));      
             /*Misc*/
         }
+        /*Q Split Q Misslie*/
+        private static void Obj_SpellMissile_OnCreate(GameObject sender, EventArgs args)
+        {
+            var missile = sender as MissileClient;
+
+            if (missile?.SpellCaster != null && missile.SpellCaster.IsValid && missile.SpellCaster.IsMe &&
+                missile.SData.Name.Equals("VelkozQMissile", StringComparison.InvariantCultureIgnoreCase))
+            {
+                _qMissile = missile;
+            }
+        }
+        /*Q Split Q Misslie*/
+
         /*SpellDraw*/
         private static void SpellDraw(EventArgs args)
         {
@@ -228,7 +239,7 @@ namespace FrOnDaL_Velkoz
             {
                 ManuelR();
             }
-         
+         AutoQ();
         }
         /*VelkozActive*/
 
@@ -287,14 +298,6 @@ namespace FrOnDaL_Velkoz
         /*Harass*/
         private static void Harras()
         {
-            if (_q.IsReady() && _q.ToggleState == 0 && !IsQActive && _harrass["q"].Cast<CheckBox>().CurrentValue && Velkoz.ManaPercent >= _harrass["HmanaP"].Cast<Slider>().CurrentValue)
-            {              
-                var harassTargetQ = TargetSelector.GetTarget(_q.Range, DamageType.Magical);
-                if (harassTargetQ != null && harassTargetQ.IsValidTarget(_q.Range) && _q.GetPrediction(harassTargetQ).HitChance >= HitChance.High && harassTargetQ.Distance(Velkoz.ServerPosition) > 150 && harassTargetQ.Distance(Velkoz.ServerPosition) < _q.Range)
-                {
-                    _q.Cast(harassTargetQ);
-                }
-            }
             if (_w.IsReady() && _harrass["w"].Cast<CheckBox>().CurrentValue && Velkoz.ManaPercent >= _harrass["HmanaP"].Cast<Slider>().CurrentValue)
             {
                 var harassTargetW = TargetSelector.GetTarget(_w.Range, DamageType.Magical);
@@ -307,7 +310,7 @@ namespace FrOnDaL_Velkoz
                     
                 }
             }
-            if (!_e.IsReady() || !_harrass["e"].Cast<CheckBox>().CurrentValue || !(Velkoz.ManaPercent >= _harrass["HmanaP"].Cast<Slider>().CurrentValue)) return;
+            if (_e.IsReady() && _harrass["e"].Cast<CheckBox>().CurrentValue && (Velkoz.ManaPercent >= _harrass["HmanaP"].Cast<Slider>().CurrentValue))
             {
                 var harassTargetE = TargetSelector.GetTarget(_e.Range, DamageType.Magical);
                 var harassE = EntityManager.Heroes.Enemies.Where(x => Velkoz.IsInRange(x, _e.Range) && x.IsValid && !x.IsDead).ToList();
@@ -317,20 +320,67 @@ namespace FrOnDaL_Velkoz
                     _e.Cast(epred.CastPosition);
                 }
             }
+            /*Q Split*/
+            var qTarget = TargetSelector.GetTarget(_q.Range, DamageType.Magical);
+            var qDummyTarget = TargetSelector.GetTarget(_qDummy.Range, DamageType.Magical);
+            if (_harrass["q"].Cast<CheckBox>().CurrentValue && Velkoz.ManaPercent >= _harrass["HmanaP"].Cast<Slider>().CurrentValue && qTarget != null && _q.IsReady() && !IsQActive)
+            {
+                if (QCast(qTarget))
+                    return;
+            }
+
+            if (qDummyTarget == null || !_harrass["q"].Cast<CheckBox>().CurrentValue || !(Velkoz.ManaPercent >= _harrass["HmanaP"].Cast<Slider>().CurrentValue) || !_q.IsReady() || IsQActive)
+                return;
+            if (qTarget != null) qDummyTarget = qTarget;
+            _qDummy.CastDelay = (int)(.25f + _q.Range / _q.Speed * 1000 + _qSplit.Range / _qSplit.Speed * 1000) * 1000;
+
+            var predictedPos = _qDummy.GetPrediction(qDummyTarget);
+
+            if (predictedPos.HitChance < HitChance.High) return;
+            for (var i = -1; i < 1; i = i + 2)
+            {
+                const float alpha = 28 * (float)Math.PI / 180;
+                var cp = ObjectManager.Player.ServerPosition.To2D() +
+                         (predictedPos.CastPosition.To2D() - ObjectManager.Player.ServerPosition.To2D()).Rotated
+                             (i * alpha);
+
+                if (GetCollision(Velkoz.ServerPosition.To2D(), new List<Vector2> { cp },
+                    _q.Width, _q.Speed, _q.CastDelay / 1000f).Count != 0 ||
+                    GetCollision(cp, new List<Vector2> { predictedPos.CastPosition.To2D() },
+                        _qSplit.Width, _qSplit.Speed, _qSplit.CastDelay / 1000f).Count != 0)
+                    continue;
+                QCast(cp.To3DWorld());
+                return;
+            }
+            /*Q Split*/
+        }
+
+        private static void AutoQ()
+        {
+            if (!_harrass["autoq"].Cast<CheckBox>().CurrentValue) return;
+            var qTarget = TargetSelector.GetTarget(_q.Range, DamageType.Magical);
+            var qDummyTarget = TargetSelector.GetTarget(_qDummy.Range, DamageType.Magical);
+            if (Velkoz.ManaPercent >= _harrass["HmanaP"].Cast<Slider>().CurrentValue && qTarget != null && _q.IsReady() && !IsQActive)
+            {
+                if (QCast(qTarget)) return;
+            }
+            if (qDummyTarget == null || !(Velkoz.ManaPercent >= _harrass["HmanaP"].Cast<Slider>().CurrentValue) || !_q.IsReady() || IsQActive) return;
+            if (qTarget != null) qDummyTarget = qTarget; _qDummy.CastDelay = (int)(.25f + _q.Range / _q.Speed * 1000 + _qSplit.Range / _qSplit.Speed * 1000) * 1000;
+            var predictedPos = _qDummy.GetPrediction(qDummyTarget);
+            if (predictedPos.HitChance < HitChance.High) return;
+            for (var i = -1; i < 1; i = i + 2)
+            {
+                const float alpha = 28 * (float)Math.PI / 180;
+                var cp = ObjectManager.Player.ServerPosition.To2D() + (predictedPos.CastPosition.To2D() - ObjectManager.Player.ServerPosition.To2D()).Rotated (i * alpha);
+                if (GetCollision(Velkoz.ServerPosition.To2D(), new List<Vector2> { cp }, _q.Width, _q.Speed, _q.CastDelay / 1000f).Count != 0 || GetCollision(cp, new List<Vector2> { predictedPos.CastPosition.To2D() }, _qSplit.Width, _qSplit.Speed, _qSplit.CastDelay / 1000f).Count != 0) continue;
+                QCast(cp.To3DWorld()); return;
+            }
         }
         /*Harass*/
 
         /*Combo*/
         private static void Combo()
         {
-            if (_q.IsReady() && _q.ToggleState == 0 && !IsQActive && _combo["q"].Cast<CheckBox>().CurrentValue)
-            {
-                  var comboTargetQ = TargetSelector.GetTarget(_q.Range, DamageType.Magical);
-                  if (comboTargetQ != null && comboTargetQ.IsValidTarget(_q.Range) && _q.GetPrediction(comboTargetQ).HitChance >= HitChance.High && comboTargetQ.Distance(Velkoz.ServerPosition) > 150 && comboTargetQ.Distance(Velkoz.ServerPosition) < _q.Range)
-                  {
-                          _q.Cast(comboTargetQ);
-                  }            
-            }
             if (_w.IsReady() && _combo["w"].Cast<CheckBox>().CurrentValue)
             {
                 var comboTargetW = TargetSelector.GetTarget(_w.Range, DamageType.Magical);
@@ -344,7 +394,7 @@ namespace FrOnDaL_Velkoz
                     }
                 }
             }
-            if (!_e.IsReady() || !_combo["e"].Cast<CheckBox>().CurrentValue) return;
+            if (_e.IsReady() && _combo["e"].Cast<CheckBox>().CurrentValue)
             {
                 var comboTargetE = TargetSelector.GetTarget(_e.Range, DamageType.Magical);
                 var comboE = EntityManager.Heroes.Enemies.Where(x => Velkoz.IsInRange(x, _e.Range) && x.IsValid && !x.IsDead).ToList();
@@ -354,8 +404,79 @@ namespace FrOnDaL_Velkoz
                     _e.Cast(epred.CastPosition);                  
                 }
             }
+            /*Q Split*/
+            var qTarget = TargetSelector.GetTarget(_q.Range, DamageType.Magical);
+            var qDummyTarget = TargetSelector.GetTarget(_qDummy.Range, DamageType.Magical);      
+            if (_combo["q"].Cast<CheckBox>().CurrentValue && qTarget != null && _q.IsReady() && !IsQActive)
+            {
+                if (QCast(qTarget)) return;
+            }
+            if (qDummyTarget == null || !_combo["q"].Cast<CheckBox>().CurrentValue || !_q.IsReady() || IsQActive) return;
+            if (qTarget != null) qDummyTarget = qTarget; _qDummy.CastDelay = (int)(.25f + _q.Range / _q.Speed * 1000 + _qSplit.Range / _qSplit.Speed * 1000) * 1000;
+            var predictedPos = _qDummy.GetPrediction(qDummyTarget);
+            if (predictedPos.HitChance < HitChance.High) return;
+            for (var i = -1; i < 1; i = i + 2)
+            {
+                const float alpha = 28 * (float)Math.PI / 180; var cp = ObjectManager.Player.ServerPosition.To2D() + (predictedPos.CastPosition.To2D() - ObjectManager.Player.ServerPosition.To2D()).Rotated (i * alpha);
+                if (GetCollision(Velkoz.ServerPosition.To2D(), new List<Vector2> {cp}, _q.Width, _q.Speed, _q.CastDelay/1000f).Count != 0 || GetCollision(cp, new List<Vector2> {predictedPos.CastPosition.To2D()}, _qSplit.Width, _qSplit.Speed, _qSplit.CastDelay/1000f).Count != 0) continue;
+                QCast(cp.To3DWorld()); return;
+            }
+            /*Q Split*/
         }
         /*Combo*/
+
+        /*Q Split GetCollision*/
+        private static List<Obj_AI_Base> GetCollision(Vector2 from, IEnumerable<Vector2> to, float width, float speed, float delay, float delayOverride = -1)
+        {
+            return Pradiction.Collision.GetCollision( to.Select(h => h.To3D()).ToList(), new Pradiction.PredictionInput { From = from.To3D(), Type = Pradiction.SkillshotType.SkillshotLine, Radius = width, Delay = delayOverride > 0 ? delayOverride : delay, Speed = speed });
+        }
+        /*Q Split GetCollision*/
+
+        /*Q Split QCast*/
+        public static float QLastCastAttemptT { get; private set; }
+        private static void QCast()
+        {
+            QLastCastAttemptT = Core.GameTickCount; Velkoz.Spellbook.CastSpell(SpellSlot.Q);
+        }
+        private static void QCast(Vector3 position)
+        {
+            QLastCastAttemptT = Core.GameTickCount; _q.Cast(position);
+        }
+        private static bool QCast(Obj_AI_Base target)
+        {
+            QLastCastAttemptT = Core.GameTickCount; return _q.Cast(target);
+        }
+        /*Q Split QCast*/
+
+        private static void Game_OnUpdate(EventArgs args)
+        {
+            var target = EntityManager.Heroes.Enemies.OrderBy(t => t.Distance(_rCastPos)).FirstOrDefault(t => t.IsValidTarget(_r.Range)); // Get target near R Casted Position
+            if (Velkoz.Spellbook.IsChanneling && target != null) // Detect player is Channeling
+            {
+                Velkoz.Spellbook.UpdateChargeableSpell(_r.Slot, target.ServerPosition, false, false); // Change cast Position to target position
+            }
+            /*Q Split -> THANK YOU Esk0r*/
+            if (_qMissile == null || !_qMissile.IsValid || !IsQActive) return;
+            {
+                var qMissilePosition = _qMissile.Position.To2D();
+                var perpendicular = (_qMissile.EndPosition - _qMissile.StartPosition).To2D().Normalized().Perpendicular();
+                var lineSegment1End = qMissilePosition + perpendicular * _qSplit.Range;
+                var lineSegment2End = qMissilePosition - perpendicular * _qSplit.Range;
+                var potentialTargets = EntityManager.Heroes.Enemies.Where(h => h.IsValidTarget() && h.ServerPosition.To2D().Distance(qMissilePosition, _qMissile.EndPosition.To2D(), true, false) < 700).Cast<Obj_AI_Base>().ToList();
+                _qSplit.RangeCheckSource = qMissilePosition.To3DWorld();
+                _qSplit.SourcePosition = qMissilePosition.To3D();
+                foreach (var enemy in from enemy in EntityManager.Heroes.Enemies.Where( h => h.IsValidTarget() && (potentialTargets.Count == 0 || h.NetworkId == potentialTargets.OrderBy(t => t.Health / Velkoz.GetSpellDamage(t, SpellSlot.Q)).ToList()[0].NetworkId) && (h.ServerPosition.To2D().Distance(qMissilePosition, _qMissile.EndPosition.To2D(), true, false) > _q.Width + h.BoundingRadius))
+                                      let prediction = _qSplit.GetPrediction(enemy)
+                                      let d1 = prediction.UnitPosition.To2D().Distance(qMissilePosition, lineSegment1End, true, false)
+                                      let d2 = prediction.UnitPosition.To2D().Distance(qMissilePosition, lineSegment2End, true, false)
+                                      where prediction.HitChance >= HitChance.Medium && (d1 < _qSplit.Width + enemy.BoundingRadius || d2 < _qSplit.Width + enemy.BoundingRadius)
+                                      select enemy)
+                {
+                    QCast();
+                }
+            }
+            /*Q Split -> THANK YOU Esk0r*/
+        }
 
         /*ManuelR*/
         private static void ManuelR()
@@ -389,7 +510,6 @@ namespace FrOnDaL_Velkoz
             {
                 _q.Cast(sender.Position);
             }
-
             if (_misc["Egap"].Cast<CheckBox>().CurrentValue && _e.IsReady() && sender.IsEnemy && sender.IsValidTarget(1000) && gap.End.Distance(Velkoz) <= 250)
             {
                 _e.Cast(sender.Position);
@@ -420,7 +540,8 @@ namespace FrOnDaL_Velkoz
                 Drawing.DrawLine(go, finish, _yukseklik, Color.FromArgb(180, Color.Green));
             }
         }
-        /*Damage Indicator*/      
+        /*Damage Indicator*/  
+            
         private static bool IsQActive => _q.Name.Equals("VelkozQSplitActivate");
     }
 }

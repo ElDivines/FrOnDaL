@@ -79,10 +79,13 @@ namespace FrOnDaL_Varus
             _main.AddLabel("For faults please visit the 'elobuddy' forum and let me know.");
             _main.AddSeparator(10);
             _main.AddLabel("My good deeds -> FrOnDaL");
+
             _combo = _main.AddSubMenu("Combo");
             _combo.AddGroupLabel("Combo mode settings for Varus");
-            _combo.AddLabel("Use Combo Q (On/Off)");
+            _combo.AddLabel("Use Combo Q (On/Off)" + "                                 " + "W stack use Q");
             _combo.Add("q", new CheckBox("Use Q"));
+            _combo.Add("qstcW", new CheckBox("W stack use Q (On/Off)", false));
+            _combo.Add("qhitW", new Slider("{0} W stack use E", 2, 1, 3));
             _combo.AddSeparator(5);
             _combo.Add("qlogic", new ComboBox("Q Logic ", 0, "Normal", "FrOnDaL"));
             _combo.AddSeparator(5);
@@ -100,6 +103,7 @@ namespace FrOnDaL_Varus
             _combo.Add("RHit", new Slider("Manual R Hits ", 1, 1, 5));
             _combo.AddSeparator(5);
             _combo.Add("RHitChance", new Slider("R hitchance percent : {0}", 60));
+
             _harras = _main.AddSubMenu("Harras");
             _harras.AddGroupLabel("Harras mode settings for Varus");
             _harras.AddLabel("Use harras Q key settings");
@@ -108,6 +112,7 @@ namespace FrOnDaL_Varus
             _harras.Add("HmanaP", new Slider("Harras Mana Control Min mana percentage ({0}%) to use Q", 50, 1));
             _harras.AddSeparator(5);
             _harras.Add("QHitChance", new Slider("Q hitchance percent : {0}", 60));
+
             _laneclear = _main.AddSubMenu("LaneClear");
             _laneclear.AddGroupLabel("LaneClear mode settings for Varus");
             _laneclear.Add("LmanaP", new Slider("Lane Clear Mana Control Min mana percentage ({0}%) to use Q and E", 70, 1));
@@ -117,6 +122,7 @@ namespace FrOnDaL_Varus
             _laneclear.AddSeparator(5);
             _laneclear.Add("e", new CheckBox("Use E (On/Off)"));
             _laneclear.Add("eHit", new Slider("Hit {0} Units Minions Use E", 3, 1, 6));
+
             _jungleclear = _main.AddSubMenu("JungClear");
             _jungleclear.AddGroupLabel("JungClear mode settings for Varus");
             _jungleclear.Add("JmanaP", new Slider("Jung Clear Mana Control Min mana percentage ({0}%) to use Q and E", 30, 1));
@@ -124,6 +130,7 @@ namespace FrOnDaL_Varus
             _jungleclear.AddLabel("Jung Clear Use Q an E (On/Off)");
             _jungleclear.Add("q", new CheckBox("Use Q"));
             _jungleclear.Add("e", new CheckBox("Use E"));
+
             _drawings = _main.AddSubMenu("Drawings");
             _drawings.AddGroupLabel("Drawings mode settings for Varus");
             _drawings.AddLabel("Use Drawings Q-E-R (On/Off)");
@@ -132,6 +139,7 @@ namespace FrOnDaL_Varus
             _drawings.Add("drawR", new CheckBox("Draw R", false));
             _drawings.AddLabel("Use Draw Damage (On/Off)");
             _drawings.Add("damageQ", new CheckBox("Draw damage indicator"));
+
             _misc = _main.AddSubMenu("Misc");
             _misc.AddLabel("Auto Blade of the Ruined King and Bilgewater Cutlass");
             _misc.Add("botrk", new CheckBox("Use BotRk (On/Off)"));
@@ -245,6 +253,9 @@ namespace FrOnDaL_Varus
         {
             if (_q.IsReady() && _combo["q"].Cast<CheckBox>().CurrentValue)
             {
+                var targetQstc = TargetSelector.GetTarget(_q.Range, DamageType.Physical);
+                if ((BuffW(targetQstc) && GoBuffW(targetQstc).Count >= _combo["qhitW"].Cast<Slider>().CurrentValue && _combo["qstcW"].Cast<CheckBox>().CurrentValue) || !_w.IsLearned || !_combo["qstcW"].Cast<CheckBox>().CurrentValue)
+                {                                   
                 var qProphecy = EntityManager.Heroes.Enemies.Where(x => x.IsValidTarget(_q.IsCharging ? _q.Range : _q.MaximumRange) && !SpellShield(x) && !SpellBuff(x)).ToList();                
                 var targetQ = TargetSelector.GetTarget(qProphecy, DamageType.Physical);
                 if (targetQ != null)
@@ -276,6 +287,7 @@ namespace FrOnDaL_Varus
                     var distanceQ = EntityManager.Heroes.Enemies.Where(x => x.IsValidTarget()).OrderBy(x => x.Distance(Varus)).FirstOrDefault();
                     if (distanceQ != null)
                     { _q.CastMinimumHitchance(distanceQ, 50); }
+                }
                 }
             }
             if (!_combo["e"].Cast<CheckBox>().CurrentValue || !_e.IsReady() || IsPreAa) return;
