@@ -2147,7 +2147,7 @@
 				"10": "Use Q",
 				"11": "Use E",
 				"12": "Mana % for Harras",
-				"13": "Prediction Hitchange: ",
+				"13": "Prediction Hitchange: Low",
 				"14": "Healing",
 				"15": "W Settings ~.~",
 				"16": "Auto W",
@@ -2168,7 +2168,9 @@
 				"31": "Drawing Options :~",
 				"32": "Draw Q",
 				"33": "Draw E",
-				"34": "Draw H on Healing Needed Heroes"				
+				"34": "Draw H on Healing Needed Heroes",
+				"35": "Prediction Hitchange: Medium",
+				"36": "Prediction Hitchange: High",			
 			},
 			"Turkish": {
 				"0": "Sorakinha ^.^",
@@ -2183,8 +2185,8 @@
 				"9": "Dürtme Seçenekleri ¬¬",
 				"10": "Q'yu Kullan",
 				"11": "E'yi Kullan",
-				"12": "Dürtme içi Mana Kontrolü %",
-				"13": "Q ve E için İsabet oranı: ",
+				"12": "Dürtme içi Mana Kontrolü {0}%",
+				"13": "Q ve E için İsabet oranı: düşük",
 				"14": "Şifa(W) Ayarları",
 				"15": "W Ayarları ~.~",
 				"16": "Otomatik W Kullan",
@@ -2200,12 +2202,14 @@
 				"26": "Biri üzerime atılırsa otomatik [E] kullan",
 				"27": "Büyü Engellemek için E kullan",
 				"28": "Minyonlara Saldırıyı Aç",
-				"29": "Kostüm Şeçin [number]",
+				"29": "Kostüm Şeçin {0}%",
 				"30": "Göstergeler",
 				"31": "Gösterge Ayarları :~",
 				"32": "Q Menzilini Göster",
 				"33": "E Menzilini Göster",
-				"34": "İyileştrilmesi gereken Şampiyon üzerinde H simgesini Göster"	
+				"34": "Canı az olan Müttefik Üzerinde H Göster",
+				"35": "Q ve E için İsabet oranı:  Orta",
+				"35": "Q ve E için İsabet oranı:  Yüksek"
 			}
 		}
  }
