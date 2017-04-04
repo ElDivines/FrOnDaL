@@ -2152,7 +2152,7 @@
 				"15": "W Settings ~.~",
 				"16": "Auto W",
 				"17": "Dont W in Fountain",
-				"18": "Heal ",
+				"18": "Heal + hero.ChampionName",
 				"19": "Health % ",
 				"20": "R Settings ^.~",
 				"21": "Use R",
