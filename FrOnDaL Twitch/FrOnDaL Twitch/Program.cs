@@ -324,17 +324,17 @@ namespace FrOnDaL_Twitch
             {
                 return 0;
             }
-            var passiveHit = (from x in ObjectManager.Get<Obj_GeneralParticleEmitter>() where x.Name.Contains("twitch_poison_counter") && (x.Position.Distance(obj.ServerPosition) <= (obj.Type == GameObjectType.obj_AI_Minion ? 65 : 176.7768f)) orderby x.Distance(obj) select x.Name).FirstOrDefault();
+            var passiveHit = (from x in ObjectManager.Get<Obj_GeneralParticleEmitter>() where x.Name.Contains("Twitch_Base_P_Stack") && (x.Position.Distance(obj.ServerPosition) <= (obj.Type == GameObjectType.obj_AI_Minion ? 65 : 176.7768f)) orderby x.Distance(obj) select x.Name).FirstOrDefault();
             if (passiveHit == null) return 0;
             int stacks;
             switch (passiveHit)
             {
-                case "twitch_poison_counter_01.troy": stacks = 1; break;
-                case "twitch_poison_counter_02.troy": stacks = 2; break;
-                case "twitch_poison_counter_03.troy": stacks = 3; break;
-                case "twitch_poison_counter_04.troy": stacks = 4; break;
-                case "twitch_poison_counter_05.troy": stacks = 5; break;
-                case "twitch_poison_counter_06.troy": stacks = 6; break;
+                case "Twitch_Base_P_Stack_01.troy": stacks = 1; break;
+                case "Twitch_Base_P_Stack_02.troy": stacks = 2; break;
+                case "Twitch_Base_P_Stack_03.troy": stacks = 3; break;
+                case "Twitch_Base_P_Stack_04.troy": stacks = 4; break;
+                case "Twitch_Base_P_Stack_05.troy": stacks = 5; break;
+                case "Twitch_Base_P_Stack_06.troy": stacks = 6; break;
                 default: stacks = 0; break;
             }
             return stacks;
